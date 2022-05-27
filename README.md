@@ -1,12 +1,16 @@
-# Web Server
+# Yuri Web Server
 
 Web server source code for yuri website.
 
-# Testing
+## Requirements
+
+* Rust
+
+## Testing
 
 Run locally, default port is `8787`
 
-# TODO
+## TODO
 
 - [ ] Documentation
 - [ ] everything lol
