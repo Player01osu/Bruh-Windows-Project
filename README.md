@@ -4,11 +4,11 @@ Web server source code for yuri website.
 
 ## Requirements
 
-* Rust 1.58 >=
+- Rust >= 1.58
 
 ## Testing
 
-` cargo run `
+`cargo run`
 Run locally, default port is `7878`
 
 ## TODO
