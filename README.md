@@ -11,7 +11,7 @@ Built using actix framework and yew framework
 ## Testing
 
 `cargo run`
-Run locally, default port is `7878`
+Run locally, default port is `8080`
 
 ## TODO
 
