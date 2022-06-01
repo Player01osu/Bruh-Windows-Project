@@ -9,6 +9,12 @@ async fn index(_req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
     Ok(NamedFile::open(path)?)
 }
 
+async fn test(_req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
+    let path: PathBuf = "./files/test.html".parse().unwrap();
+
+    Ok(NamedFile::open(path)?)
+}
+
 async fn not_found() -> Result<HttpResponse> {
     Ok(HttpResponse::build(StatusCode::OK)
         .content_type("text/html; charset=utf-8")
@@ -21,18 +27,10 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-        .route("/", web::get().to(index))
-
-        .service(
-            web::resource("/user/{name}")
-                .name("user_detail")
-                .guard(guard::Header("content-type", "application/json"))
-                .route(web::get().to(HttpResponse::Ok))
-                .route(web::put().to(HttpResponse::Ok)),
-        )
-        .default_service(web::route().to(not_found))
+            .service(web::resource("/").to(index))
+            .service(web::resource("/test").to(test))
+            .default_service(web::route().to(not_found))
         })
-        .bind(("127.0.0.1", 8080))?
         .run()
         .await
 }
