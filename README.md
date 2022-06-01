@@ -16,4 +16,5 @@ Run locally, default port is `8080`
 ## TODO
 
 - [ ] Documentation
+- [ ] Static landing page
 - [ ] everything lol
