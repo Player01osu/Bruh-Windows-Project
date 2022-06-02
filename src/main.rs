@@ -1,4 +1,5 @@
 use actix_files::NamedFile;
+use actix_web::middleware::Logger;
 use actix_web::HttpRequest;
 use actix_web::{get, http::Method, middleware, web, App, HttpServer, HttpResponse};
 use actix_web::http::StatusCode;
@@ -18,10 +19,14 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    HttpServer::new(|| App::new()
+    HttpServer::new(move|| {
+        let logger = Logger::default();
+        App::new()
+        .wrap(logger)
         .service(fs::Files::new("/", "./files/").index_file("index.html"))
-        .default_service(web::route().to(not_found)))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+        .default_service(web::route().to(not_found))
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
