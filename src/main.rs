@@ -7,7 +7,7 @@ use actix_files as fs;
 
 // TODO: Properly implement 404 Error.
 async fn not_found() -> Result<NamedFile, actix_web::Error> {
-    let path: PathBuf = "./files/404.html".parse().unwrap();
+    let path: PathBuf = "./files/not_found.html".parse().unwrap();
 
     Ok(NamedFile::open(path)?)
 }
@@ -21,4 +21,3 @@ async fn main() -> std::io::Result<()> {
         .run()
         .await
 }
-
