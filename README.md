@@ -11,10 +11,14 @@ Built using actix framework and yew framework
 ## Testing
 
 `cargo run`
-Run locally, default port is `8080`
+Binded on `127.0.0.1:8080`
+
+## Development
+
+Clone this repository
+
+`git clone https://github.com/player01osu/Bruh-Web-Server.git`
 
 ## TODO
 
-- [ ] Documentation
-- [ ] Static landing page
-- [ ] everything lol
+- [TODO](TODO.md)
