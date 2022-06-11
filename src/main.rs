@@ -1,39 +1,32 @@
 use actix_files::NamedFile;
-use actix_web::{HttpResponse, HttpRequest, Result, guard, get};
+use actix_web::middleware::Logger;
+use actix_web::HttpRequest;
+use actix_web::{get, http::Method, middleware, web, App, HttpServer, HttpResponse};
 use actix_web::http::StatusCode;
 use std::path::PathBuf;
+use actix_files as fs;
 
-async fn index(_req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
-    let path: PathBuf = "./files/index.html".parse().unwrap();
+// TODO: Properly implement 404 Error.
+async fn not_found() -> Result<NamedFile, actix_web::Error> {
+    let path: PathBuf = "./files/not_found.html".parse().unwrap();
 
     Ok(NamedFile::open(path)?)
 }
 
-async fn not_found() -> Result<HttpResponse> {
-    Ok(HttpResponse::build(StatusCode::OK)
-        .content_type("text/html; charset=utf-8")
-        .body("<h1>Error 404</h1>"))
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    use actix_web::{web, App, HttpServer};
+    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_BACKTRACE", "1");
+    env_logger::init();
 
-    HttpServer::new(|| {
+    HttpServer::new(move|| {
+        let logger = Logger::default();
         App::new()
-        .route("/", web::get().to(index))
-
-        .service(
-            web::resource("/user/{name}")
-                .name("user_detail")
-                .guard(guard::Header("content-type", "application/json"))
-                .route(web::get().to(HttpResponse::Ok))
-                .route(web::put().to(HttpResponse::Ok)),
-        )
+        .wrap(logger)
+        .service(fs::Files::new("/", "./files/").index_file("index.html"))
         .default_service(web::route().to(not_found))
-        })
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
-

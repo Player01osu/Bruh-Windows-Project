@@ -16,24 +16,7 @@ body{
 .container {
     display: grid;
     grid-template-columns: 1fr;
-    
 }
-
-.home {
-    color: rgb(71, 6, 101);
-    transition: color 0.5s;
-}
-.test {
-    color: rgb(71, 6, 101);
-    transition: color 0.5s;
-}
-.home:hover{
-    color: red;
-}
-.test:hover{
-    color: red;
-}
-
 
 .nav {
     
@@ -64,32 +47,26 @@ body{
 }
 
 .indiv:hover{
-    border-bottom: 1px solid rgb(71, 6, 101);
+    border-bottom: 1px solid rgb(158, 27, 219);
 
 }
 
 .images {
+
     
-    width: 500px;
-    display: flex;
-    justify-content: center;
     
 
 }
 
 .images > div {
-    
-    background-color: aqua;
-    height: 500px;
-    width: 500px;
+
     border: 1px solid rgb(63, 6, 205);
     margin: auto; 
     display: block;
-
+    height: 500px;
+    width: 500px;
     display: flex;
     justify-content: center;
-
-    
 
     
 }
@@ -100,16 +77,11 @@ body{
 
 }
 
-.bruh {
-    max-width: 90%;
-    max-height: 70%;
-
-}
-
-.image-one > p {
-    color: rgb(240, 15, 184);
-    display: flex;
-    text-align: center;
+.image-two {
+    max-width: 10%;
+    max-height: 40%;
+    height: 400px;
+    width: 400px;
 }
 
 
