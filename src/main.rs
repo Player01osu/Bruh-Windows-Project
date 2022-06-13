@@ -1,3 +1,5 @@
+mod api;
+
 use actix_files::NamedFile;
 use actix_web::middleware::Logger;
 use actix_web::HttpRequest;
@@ -5,6 +7,8 @@ use actix_web::{get, http::Method, middleware, web, App, HttpServer, HttpRespons
 use actix_web::http::StatusCode;
 use std::path::PathBuf;
 use actix_files as fs;
+
+
 
 // TODO: Properly implement 404 Error.
 async fn not_found() -> Result<NamedFile, actix_web::Error> {
