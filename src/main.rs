@@ -1,32 +1,70 @@
 mod api;
 
-use actix_files::NamedFile;
+use std::ops::Index;
 use actix_web::middleware::Logger;
-use actix_web::HttpRequest;
-use actix_web::{get, http::Method, middleware, web, App, HttpServer, HttpResponse};
+use actix_web::{Responder, get, http::Method, middleware, web, App, HttpServer, HttpResponse, HttpRequest};
 use actix_web::http::StatusCode;
-use std::path::PathBuf;
+use actix_files::NamedFile;
+use actix_web::{
+    error::ResponseError,
+    post, put,
+    web::Data,
+    web::Json,
+    web::Path,
+};
+use actix_rt;
+use actix::prelude::*;
 use actix_files as fs;
+use tokio::time::Duration;
+use serde::{Deserialize, Serialize};
 
+use mongodb::{Client, options::ClientOptions};
 
+use api::task::{
+    not_found,
+    get_task,
+    MyActor,
+    Ping
+};
 
-// TODO: Properly implement 404 Error.
-async fn not_found() -> Result<NamedFile, actix_web::Error> {
-    let path: PathBuf = "./files/not_found.html".parse().unwrap();
-
-    Ok(NamedFile::open(path)?)
+#[derive(Serialize, Deserialize)]
+struct Identity {
+    id: u32,
+    name: String,
 }
+
+#[get("/{id}/{name}/index.html")]
+async fn index(index: Path<Identity>) -> impl Responder {
+    format!("Hello {}! id:{}", index.name, index.id)
+}
+
+//#[get("/")]
+//async fn static_handler() -> impl Responder {
+//    fs::Files::new("/", "./files/").index_file("index.html")
+//}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Logging
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
+
+    let addr = MyActor { count: 10 }.start();
+
+    let res = addr.send(Ping(10)).await;
+
+    println!("RESULTS: {}", res.unwrap() == 20);
+
+    System::current().stop();
 
     HttpServer::new(move|| {
         let logger = Logger::default();
         App::new()
         .wrap(logger)
+        //.service(static_handler)
+        .service(index)
+        .service(get_task)
         .service(fs::Files::new("/", "./files/").index_file("index.html"))
         .default_service(web::route().to(not_found))
     })
