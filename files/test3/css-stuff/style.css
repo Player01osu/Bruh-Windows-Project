@@ -17,6 +17,7 @@ body{
     display: grid;
     grid-template-columns: 1fr;
     
+    
 }
 
 .home {
@@ -37,13 +38,24 @@ body{
 
 .nav {
     
-    display: flex;
-    padding: 70px;
-    justify-content: center;
+display: flex;    
 
+}
 
+.navall {
     
+    background-color: rgb(23, 3, 41);
+    border-bottom: 2px solid rgb(168, 30, 150);
+    border-right: 2px solid red;
+    position: fixed;
+    height: 100vh;
+    width: 300px;
 
+
+ 
+}
+.nav {
+  
 }
 
 .navall > .nav > div {
@@ -51,7 +63,6 @@ body{
     margin-right: 20px;
 
     
-
 }
 
 
@@ -68,50 +79,44 @@ body{
 
 }
 
-.images {
-    
-    width: 500px;
-    display: flex;
-    justify-content: center;
-    
-
-}
 
 .images > div {
     
-    background-color: aqua;
-    height: 500px;
+    
+    height: 700px;
     width: 500px;
-    border: 1px solid rgb(63, 6, 205);
+    border: 3px solid rgb(63, 6, 205);
     margin: auto; 
     display: block;
 
     display: flex;
-    justify-content: center;
-
     
-
     
 }
-.marginauto {
-    max-width: 70%;
-    max-height: 70%;
 
 
-}
-
-.bruh {
-    max-width: 90%;
-    max-height: 70%;
-
-}
 
 .image-one > p {
     color: rgb(240, 15, 184);
     display: flex;
     text-align: center;
 }
+.images {
+    margin-top: 100px;
 
+
+}
+
+.imge {
+
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    
+
+
+}
 
 
 
