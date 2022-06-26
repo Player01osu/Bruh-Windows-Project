@@ -15,10 +15,11 @@ use actix_web::{
 use actix_rt;
 use actix::prelude::*;
 use actix_files as fs;
-use tokio::time::Duration;
 use serde::{Deserialize, Serialize};
 
+
 use mongodb::{Client, options::ClientOptions};
+use mongodb::bson::{doc, Document};
 
 use api::task::{
     not_found,
@@ -50,13 +51,6 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    let addr = MyActor { count: 10 }.start();
-
-    let res = addr.send(Ping(10)).await;
-
-    println!("RESULTS: {}", res.unwrap() == 20);
-
-    System::current().stop();
 
     HttpServer::new(move|| {
         let logger = Logger::default();
