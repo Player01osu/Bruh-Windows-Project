@@ -113,11 +113,16 @@ display: flex;
     display: block;
     margin-left: auto;
     margin-right: auto;
+    height: 600px;
+    width: 500px;
     
 
 
 }
+.text {
 
+    text-align: end;
+}
 
 
 
@@ -129,3 +134,11 @@ display: flex;
     
     }
 */
+.container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 5%;
+    background-image: linear-gradient(rgb(97, 9, 148,0.9),rgb(97, 9, 148,0.9)), url(../img/Alimari_Touhou_Project.jpg);
+    background-position: center;
+    background-size: cover;
+}
