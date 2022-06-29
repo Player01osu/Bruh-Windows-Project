@@ -37,17 +37,6 @@ async fn index(index: Path<Identity>) -> impl Responder {
     format!("Hello {}! id:{}", index.name, index.id)
 }
 
-async fn static_index() -> impl Responder {
-    let site = fs::Files::new("/", "./files/").index_file("index.html");
-
-    Ok(site)
-}
-
-//#[get("/")]
-//async fn static_handler() -> impl Responder {
-//    fs::Files::new("/", "./files/").index_file("index.html")
-//}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Logging
@@ -62,7 +51,6 @@ async fn main() -> std::io::Result<()> {
         //.service(static_handler)
         .service(index)
         .service(get_task)
-        .route("/", web::get().to(static_index))
         .service(fs::Files::new("/", "./files/").index_file("index.html"))
         .default_service(web::route().to(not_found))
     })
