@@ -50,9 +50,7 @@ display: flex;
     position: fixed;
     height: 100vh;
     width: 300px;
-
-
- 
+    z-index: 2; 
 }
 .nav {
   
@@ -86,43 +84,35 @@ display: flex;
     height: 700px;
     width: 500px;
     border: 3px solid rgb(63, 6, 205);
-    margin: auto; 
-    display: block;
-
-    display: flex;
-    
     
 }
 
-
-
-.image-one > p {
-    color: rgb(240, 15, 184);
-    display: flex;
-    text-align: center;
+.container > .images {
+    position: relative;
+    left: 40vw;
+    width:500px;
 }
 .images {
     margin-top: 100px;
 
-
 }
 
 .imge {
-
-
     display: block;
     margin-left: auto;
     margin-right: auto;
     height: 600px;
     width: 500px;
+}
+
+.image-one {
     
-
-
 }
-.text {
-
-    text-align: end;
+.img-nav {
+    border: 1px solid red;
+    word-wrap: break-word;
 }
+
 
 
 
@@ -134,6 +124,13 @@ display: flex;
     
     }
 */
+
+.header {
+    z-index:99;
+    border: 1px solid red;
+    
+}
+/*
 .container {
     width: 100%;
     min-height: 100vh;
@@ -141,4 +138,6 @@ display: flex;
     background-image: linear-gradient(rgb(97, 9, 148,0.9),rgb(97, 9, 148,0.9)), url(../img/Alimari_Touhou_Project.jpg);
     background-position: center;
     background-size: cover;
+   
 }
+

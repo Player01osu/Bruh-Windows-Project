@@ -5,7 +5,7 @@
     left: 0px;
     bottom: 0px;
     width: 200px;
-
+    
 }
 
 .container {
@@ -18,6 +18,8 @@
     background-image: linear-gradient(rgba(140, 34, 119, 0.9),rgb(97, 9, 148,0.9)), url(../img/Alimari_Touhou_Project.jpg);
     background-position: center;
     background-size: cover;
+   z-index: -2;
+    
 }
 .search-bar {
     opacity: 0.85;
@@ -26,6 +28,7 @@
 .nav > .nav-img > div {
     display: flex;
     justify-content: center;
+    
 }
 
 .nav-img {
@@ -66,3 +69,25 @@
     margin-top: 50px;
 
 }
+
+.header-all {
+    
+    display: flex;
+    justify-content: center;
+    top: 0px;
+    left: 200px;
+    right: 0px;
+    position: absolute;
+    background-color:rgba(103, 40, 107, 0.9);
+    opacity: 0.65;
+
+    
+
+}
+
+.header { 
+     
+    color: aqua;
+
+}
+
