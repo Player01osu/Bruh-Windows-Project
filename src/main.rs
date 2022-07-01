@@ -70,10 +70,6 @@ pub async fn run() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    //init().ok();
-    //let (static_served_from, static_mount_path): (String, PathBuf) = get_static().unwrap();
-
-    //let ff: PathBuf = "./static/assets/".into();
     // Insert 404 Page Not Found
     let not_found_page = StaticFile {
         bytes: Bytes::from(include_bytes!("./static/404.html").to_vec()),
@@ -87,15 +83,12 @@ pub async fn run() -> std::io::Result<()> {
         let logger = Logger::default();
         let app_instance = App::new()
             .wrap(logger)
-            //.service(static_handler)
             .service(index)
             .service(get_task)
             .service({
-                //let static_serve = actix_files::Files::new(&static_served_from, &static_mount_path);
                 let static_serve = actix_files::Files::new("/assets", "static/assets");
                 static_serve
                 })
-            //.service(fs::Files::new("/", "./files/").index_file("index.html"))
             .default_service(web::route().to(router));
 
         app_instance

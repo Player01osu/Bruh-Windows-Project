@@ -84,7 +84,6 @@ pub fn init() -> anyhow::Result<()>{
     let buf_reader = BufReader::new(static_file);
     let static_parsed: Static = serde_json::from_reader(buf_reader)?;
 
-    //let routes = StaticFile::create(&static_parsed.routes);
     RouteHandle::add_routes(&static_parsed.routes)?;
 
     crate::run()?;
