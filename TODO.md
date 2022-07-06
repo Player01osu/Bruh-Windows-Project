@@ -1,19 +1,21 @@
 # General
 
-- [ ] Basic html outline
-- [ ] Add photos
+- [x] Basic html outline
+- [x] Add photos
 - [ ] Documentation
 - [ ] everything lol
 
 # Backend
 
-- [ ] Login
-- [ ] Database Implement
+- [ ] APIs
+  - [ ] Retrieve image path
+- [ ] Static page caching
 - [ ] Image posting
-- [ ] Mutlithreaded
+- [ ] Login
 
 # Frontend
 
-- [ ] Different pages
-- [ ] Display image
+- [ ] Frontend image gallery
+- [x] Different pages
+- [x] Display image
 - [x] Static landing page
