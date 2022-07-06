@@ -14,3 +14,8 @@ frontend/target/.rustc_info.json
 frontend/target/CACHEDIR.TAG
 
 target/debug
+
+common/target/debug
+common/target/.rustc_info.json
+common/target/CACHEDIR.TAG
+target
