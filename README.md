@@ -10,7 +10,9 @@ Built using actix framework and yew framework
 
 ## Testing
 
-`cargo run`
+`cargo build`
+`cd ./target/debug/`
+`./backend`
 Binded on `127.0.0.1:8080`
 
 ## Development
