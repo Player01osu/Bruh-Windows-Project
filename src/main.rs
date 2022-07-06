@@ -38,11 +38,10 @@ use compact_str::*;
 use ahash::RandomState;
 
 use api::task::{
-    not_found,
     get_task,
     MyActor,
     Ping,
-    generate_front_page,
+    gallery_display,
 };
 
 use routes::*;
@@ -74,12 +73,9 @@ pub async fn run() -> std::io::Result<()> {
             .service(get_task)
             .service(
                 web::scope("/api")
-                    .service(generate_front_page)
+                    .service(gallery_display)
                 )
-            .service({
-                let static_serve = actix_files::Files::new("/assets", "static/assets");
-                static_serve
-                })
+            .service(actix_files::Files::new("/assets", "static/assets"))
             .default_service(web::route().to(router));
 
         app_instance
