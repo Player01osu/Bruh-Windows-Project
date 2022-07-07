@@ -16,12 +16,11 @@ use routing::routes;
 use serde::{Deserialize, Serialize};
 
 use api::task::{
-    get_task,
     gallery_display,
 };
 
 use routes::*;
-use api::mongo::mongo_connect;
+use api::mongo::{MongodbCollection, MongodbDatabase};
 
 fn main() -> anyhow::Result<()> {
     init()
@@ -42,7 +41,7 @@ pub async fn run() -> std::io::Result<()> {
     let route_handle = RouteHandle { response: not_found_page };
     ROUTEMAP.insert("{{404}}".into(), route_handle);
 
-    let database = mongo_connect().await;
+    let database = MongodbDatabase::mongo_connect().await;
 
     HttpServer::new(move|| {
         let database_data = Data::new(database.clone());
@@ -51,7 +50,6 @@ pub async fn run() -> std::io::Result<()> {
         let app_instance = App::new()
             .wrap(logger)
             .app_data(database_data)
-            .service(get_task)
             .service(
                 web::scope("/api")
                     .service(gallery_display)

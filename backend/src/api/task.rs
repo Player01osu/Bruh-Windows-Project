@@ -4,7 +4,6 @@ use actix_web::{
     web::Json,
     web::Path,
 };
-use actix::prelude::*;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -12,38 +11,11 @@ use serde::{Deserialize, Serialize};
 use mongodb::{Client, options::ClientOptions, Database};
 use mongodb::bson::{Document};
 
-use super::mongo;
+use super::mongo::{self, MongodbCollection, MongodbDatabase};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskIndentifier {
     task_global_id: String,
-}
-
-pub struct MyActor {
-    pub count: usize,
-}
-
-#[get("/task/{task_global_id}")]
-pub async fn get_task(task_indentifier: Path<TaskIndentifier>) -> Json<String> {
-    return Json(task_indentifier.into_inner().task_global_id);
-}
-
-#[derive(Message)]
-#[rtype(result = "usize")]
-pub struct Ping(pub usize);
-
-impl Actor for MyActor {
-    type Context = Context<Self>;
-}
-
-impl Handler<Ping> for MyActor {
-    type Result = usize;
-
-    fn handle(&mut self, msg: Ping, _ctx: &mut Context<Self>) -> Self::Result {
-        self.count += msg.0;
-
-        self.count
-    }
 }
 
 use futures::stream::TryStreamExt;
@@ -73,21 +45,12 @@ impl Gallery {
         // >limit to around 20 posts
         // >return json of them
 
+        let database = MongodbDatabase::new(database);
         let filter = doc! { "author": "Player01" };
-        let find_options = FindOptions::builder().sort(doc! { "_id": 1 }).build();
+        let find_options = FindOptions::builder().sort(doc! { "_id": i32::from(1) }).build();
 
-        let mut cursor = database.find(filter, find_options).await.expect("Failed to generate find cursor");
         let mut paths: Vec<YuriPosts> = Vec::new();
-        let mut number = 0;
-
-        while let Some(yuri_posts) = cursor.try_next().await.expect("Failed to iterate through cursor") {
-            println!("path: {}", yuri_posts.path);
-            paths.push(yuri_posts);
-            number += 1;
-            if number > self.amount {
-                break;
-            }
-        }
+        database.find(filter, find_options, &mut paths, self.amount).await;
 
         if paths.is_empty() {
             self.show = None;
@@ -99,7 +62,6 @@ impl Gallery {
         self
     }
 }
-
 
 #[get("/gallery_display")]
 pub async fn gallery_display(database: Data<mongodb::Collection<YuriPosts>>) -> Json<Vec<YuriPosts>> {
