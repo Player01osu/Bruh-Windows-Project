@@ -16,7 +16,7 @@ Built using actix framework and yew framework
 
 `./backend`
 
-Binded on `127.0.0.1:8080`
+Binded on `localhost:8080`
 
 ## Development
 
