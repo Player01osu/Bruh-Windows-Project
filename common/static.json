@@ -1,0 +1,10 @@
+{
+        "routes": {
+                "/": "static/index.html",
+                "/about.html": "static/test.html"
+        },
+
+        "error_pages": {
+                "404": "static/404.html"
+        }
+}

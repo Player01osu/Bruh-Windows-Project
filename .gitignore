@@ -1,7 +1,21 @@
 
-target/debug/.fingerprint
-target/debug/deps
-target/debug/incremental
+backend/target/debug/.fingerprint
+backend/target/debug/deps
+backend/target/debug/incremental
+backend/target/debug
+backend/target/.rustc_info.json
+backend/target/CACHEDIR.TAG
+
+frontend/target/debug/.fingerprint
+frontend/target/debug/deps
+frontend/target/debug/incremental
+frontend/target/debug
+frontend/target/.rustc_info.json
+frontend/target/CACHEDIR.TAG
+
 target/debug
-target/.rustc_info.json
-target/CACHEDIR.TAG
+
+common/target/debug
+common/target/.rustc_info.json
+common/target/CACHEDIR.TAG
+target
