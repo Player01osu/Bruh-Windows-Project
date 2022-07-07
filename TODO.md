@@ -12,6 +12,7 @@
 - [ ] Static page caching
 - [ ] Image posting
 - [ ] Login
+- [ ] Proper error handling (it is absolutely atrocious right now)
 
 # Frontend
 

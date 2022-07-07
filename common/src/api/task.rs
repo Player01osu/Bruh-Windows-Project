@@ -69,12 +69,11 @@ async fn gen_gallery() -> Json<Vec<YuriPosts>> {
     let filter = doc! { "author": "Player01" };
     let find_options = FindOptions::builder().sort(doc! { "_id": 1 }).build();
 
-    let mut cursor = collection.find(filter, find_options).await.expect("hi");
+    let mut cursor = collection.find(filter, find_options).await.expect("Failed to generate find cursor");
     let mut paths: Vec<YuriPosts> = Vec::new();
     let mut number = 0;
 
-    while let Some(yuri_posts) = cursor.try_next().await.expect("shit myself") {
-        println!("path: {}", yuri_posts.path);
+    while let Some(yuri_posts) = cursor.try_next().await.expect("Failed to iterate through cursor") {
         paths.push(yuri_posts);
         number += 1;
         if number > 20 {
