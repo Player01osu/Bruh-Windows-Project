@@ -1,23 +1,15 @@
 use actix_web::{
-    error::ResponseError,
     get,
-    http::{header::ContentType, StatusCode},
-    post, put,
     web::Data,
     web::Json,
     web::Path,
-    HttpResponse,
 };
 use actix::prelude::*;
-use anyhow::Result;
-use std::path::PathBuf;
-use actix_files::NamedFile;
-use actix_files as fs;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use mongodb::{Client, options::ClientOptions};
+use mongodb::{Client, options::ClientOptions, Database};
 use mongodb::bson::{Document};
 
 use super::mongo;
@@ -58,34 +50,61 @@ use futures::stream::TryStreamExt;
 use mongodb::{bson::doc, options::FindOptions};
 use mongo::YuriPosts;
 
-async fn gen_gallery() -> Json<Vec<YuriPosts>> {
-    // >query mongodb for 'yuriPosts'
-    // >find a mix of new posts and
-    // most viewed posts
-    // >limit to around 20 posts
-    // >return json of them
-    let collection = mongo::mongo_connect().await;
-
-    let filter = doc! { "author": "Player01" };
-    let find_options = FindOptions::builder().sort(doc! { "_id": 1 }).build();
-
-    let mut cursor = collection.find(filter, find_options).await.expect("hi");
-    let mut paths: Vec<YuriPosts> = Vec::new();
-    let mut number = 0;
-
-    while let Some(yuri_posts) = cursor.try_next().await.expect("shit myself") {
-        println!("path: {}", yuri_posts.path);
-        paths.push(yuri_posts);
-        number += 1;
-        if number > 20 {
-            break;
-        }
-    }
-
-    Json(paths)
+pub struct Gallery {
+    show: Option<Json<Vec<YuriPosts>>>,
+    search_filters: Option<String>,
+    amount: u16
 }
 
+impl Gallery {
+    pub fn new(amount: u16) -> Gallery {
+        let generated = Gallery {
+            show: None,
+            search_filters: None,
+            amount
+        };
+        generated
+    }
+
+    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>) -> &mut Self {
+        // >query mongodb for 'yuriPosts'
+        // >find a mix of new posts and
+        // most viewed posts
+        // >limit to around 20 posts
+        // >return json of them
+
+        let filter = doc! { "author": "Player01" };
+        let find_options = FindOptions::builder().sort(doc! { "_id": 1 }).build();
+
+        let mut cursor = database.find(filter, find_options).await.expect("Failed to generate find cursor");
+        let mut paths: Vec<YuriPosts> = Vec::new();
+        let mut number = 0;
+
+        while let Some(yuri_posts) = cursor.try_next().await.expect("Failed to iterate through cursor") {
+            println!("path: {}", yuri_posts.path);
+            paths.push(yuri_posts);
+            number += 1;
+            if number > self.amount {
+                break;
+            }
+        }
+
+        if paths.is_empty() {
+            self.show = None;
+            return self;
+        }
+
+        self.show = Some(Json(paths));
+
+        self
+    }
+}
+
+
 #[get("/gallery_display")]
-pub async fn gallery_display() -> Json<Vec<YuriPosts>> {
-    return gen_gallery().await;
+pub async fn gallery_display(database: Data<mongodb::Collection<YuriPosts>>) -> Json<Vec<YuriPosts>> {
+    let mut generated = Gallery::new(20);
+    generated.gen_gallery(database).await;
+
+    return generated.show.unwrap();
 }

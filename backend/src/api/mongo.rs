@@ -9,6 +9,10 @@ pub struct YuriPosts {
     pub tags: Vec<String>,
 }
 
+pub struct MongodbDatabase {
+    pub collection: mongodb::Collection<YuriPosts>,
+}
+
 pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
     // Parse a connection string into an options struct.
     let mut client_options = ClientOptions::parse("mongodb://localhost:27017").await.expect("bruh");
@@ -31,3 +35,4 @@ pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
     let collection = db.collection::<YuriPosts>("yuriPosts");
     collection
 }
+
