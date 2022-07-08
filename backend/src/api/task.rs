@@ -6,6 +6,7 @@ use actix_web::web::JsonBody;
 use actix_web::{
     get,
     post,
+    delete,
     web::Data,
     web::Json,
     web::Path,
@@ -87,6 +88,13 @@ pub struct PostImageRequest {
     file_name: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DeleteImageRequest {
+    file_name: String,
+    author: String,
+    time: u64,
+}
+
 #[post("/post_image")]
 pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
     request: Json<PostImageRequest>)
@@ -105,4 +113,14 @@ pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
     database.insert_one(docs, None).await.expect("Handle this error properly u lazy fuck");
 
     HttpResponse::Ok().body("yeet")
+}
+
+#[delete("/delete_post")]
+pub async fn delete_post(database: Data<mongodb::Collection<YuriPosts>>,
+    request: Json<DeleteImageRequest>) -> HttpResponse {
+    let filter = doc! { "path": format!("./assets/posts/{}-{}-{}", &request.author, &request.time, &request.file_name) };
+
+    database.delete_one(filter, None).await.expect("Handle this pweeze");
+
+    HttpResponse::Ok().body("Deleted")
 }

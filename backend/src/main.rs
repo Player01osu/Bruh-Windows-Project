@@ -17,7 +17,8 @@ use serde::{Deserialize, Serialize};
 
 use api::task::{
     gallery_display,
-    post_image
+    post_image,
+    delete_post,
 };
 
 use routes::*;
@@ -56,6 +57,7 @@ pub async fn run() -> std::io::Result<()> {
                 web::scope("/api")
                     .service(gallery_display)
                     .service(post_image)
+                    .service(delete_post)
                 )
             .service(actix_files::Files::new("/assets", "static/assets"))
             .default_service(web::route().to(router));
