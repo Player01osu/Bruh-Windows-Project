@@ -57,7 +57,7 @@ impl Gallery {
         let find_options = FindOptions::builder().sort(doc! { "_id": i32::from(1) }).build();
 
         let mut paths: Vec<YuriPosts> = Vec::new();
-        database.find(filter, find_options, &mut paths, self.amount).await;
+        database.find(filter, Some(find_options), &mut paths, self.amount).await;
 
         if paths.is_empty() {
             self.show = None;

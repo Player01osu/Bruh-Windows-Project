@@ -44,10 +44,9 @@ impl MongodbDatabase {
     /// pushing its results to the vector for n amount of items.
     pub async fn find(&self,
         filter: Document,
-        find_options: FindOptions,
+        find_options: Option<FindOptions>,
         paths: &mut Vec<YuriPosts>,
         amount: u16) {
-
         let mut number: u16 = 0;
         let mut cursor = self
             .collection
