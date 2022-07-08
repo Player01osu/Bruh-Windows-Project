@@ -12,6 +12,8 @@ Built using actix framework and yew framework
 
 `cargo build`
 
+`./link.sh`
+
 `cd ./target/debug/`
 
 `./backend`
