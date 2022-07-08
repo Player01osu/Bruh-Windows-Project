@@ -8,14 +8,22 @@
 # Backend
 
 - [ ] APIs
-  - [ ] Retrieve image path
+  - [ ] Updating post information
+  - [ ] Deleting Posts
+  - [X] Retrieve image path
+  - [X] Posting images
 - [ ] Static page caching
-- [ ] Image posting
 - [ ] Login
+- [ ] Capita based posting
 - [ ] Proper error handling (it is absolutely atrocious right now)
+- [X] Image posting
 
 # Frontend
 
+- [ ] Begin Yew project file
+- [ ] Login page
+- [ ] Capita
+- [ ] Comment section
 - [ ] Frontend image gallery
 - [x] Different pages
 - [x] Display image
