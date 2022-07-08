@@ -80,20 +80,22 @@ pub async fn gallery_display(database: Data<mongodb::Collection<YuriPosts>>) -> 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PostImageRequest {
     title: String,
-    time: u64,
     author: String,
+    op: String,
+    time: u64,
     tags: Vec<String>,
+    file_name: String,
 }
 
-// need YuriPosts to be Documents cuz yuriposts does not implement trait needed for isert
 #[post("/post_image")]
 pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
     request: Json<PostImageRequest>)
     -> HttpResponse {
-
-    let path = format!("./assets/posts/{}.jpg", &request.title);
+    let path = format!("./assets/posts/{}-{}-{}", &request.author, &request.time, &request.file_name);
 
     let docs = YuriPosts {
+        title: request.title.clone(),
+        op: request.op.clone(),
         path,
         time: request.time.clone(),
         author: request.author.clone(),

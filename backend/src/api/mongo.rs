@@ -6,10 +6,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct YuriPosts {
-    pub path: String,
-    pub time: u64,
+    pub title: String,
+    pub op: String,
     pub author: String,
+    pub path: String,
     pub tags: Vec<String>,
+    pub time: u64,
 }
 //impl<'a> Borrow<Borrowed + 'a> for YuriPosts {
 //    fn borrow(&self) -> &(Borrowed + 'a) {
