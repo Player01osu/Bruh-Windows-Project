@@ -45,14 +45,14 @@ impl MongodbDatabase {
     pub async fn find(&self,
         filter: Document,
         find_options: Option<FindOptions>,
-        paths: &mut Vec<YuriPosts>,
-        amount: u16) {
+        amount: u16) -> Vec<YuriPosts>{
         let mut number: u16 = 0;
         let mut cursor = self
             .collection
             .find(filter, find_options)
             .await
             .expect("Failed to generate find cursor");
+        let mut paths: Vec<YuriPosts> = Vec::new();
 
         while let Some(yuri_posts) = cursor.try_next().await.expect("Failed to iterate through cursor") {
             println!("path: {}", yuri_posts.path);
@@ -62,8 +62,23 @@ impl MongodbDatabase {
                 break;
             }
         }
-
+        paths
     }
+
+    /// Generates a cursor for the collection, iterating through it and
+    /// return one item.
+    pub async fn find_one(&self,
+        filter: Document,
+        find_options: Option<FindOptions>) -> YuriPosts{
+        let mut cursor = self
+            .collection
+            .find(filter, find_options)
+            .await
+            .expect("Failed to generate find cursor");
+
+        return cursor.try_next().await.expect("Failed to iterate through cursor").expect("Failed to unwrap");
+        }
+
 
     pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
         // Parse a connection string into an options struct.
