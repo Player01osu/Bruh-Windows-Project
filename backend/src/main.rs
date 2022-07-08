@@ -2,7 +2,7 @@ mod api;
 mod routing;
 
 use std::path::PathBuf;
-use actix_web::middleware::Logger;
+use actix_web::middleware::{Logger, self};
 use actix_web::web::Bytes;
 use actix_web::{
     web,
@@ -50,6 +50,7 @@ pub async fn run() -> std::io::Result<()> {
 
         let app_instance = App::new()
             .wrap(logger)
+            .wrap(middleware::NormalizePath::new(middleware::TrailingSlash::Trim))
             .app_data(database_data)
             .service(
                 web::scope("/api")
