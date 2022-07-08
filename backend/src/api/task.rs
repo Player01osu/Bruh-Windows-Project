@@ -1,5 +1,11 @@
+use std::fmt::format;
+
+use actix_web::{HttpResponse, HttpResponseBuilder};
+use actix_web::http::StatusCode;
+use actix_web::web::JsonBody;
 use actix_web::{
     get,
+    post,
     web::Data,
     web::Json,
     web::Path,
@@ -69,4 +75,32 @@ pub async fn gallery_display(database: Data<mongodb::Collection<YuriPosts>>) -> 
     generated.gen_gallery(database).await;
 
     return generated.show.unwrap();
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PostImageRequest {
+    title: String,
+    time: u64,
+    author: String,
+    tags: Vec<String>,
+}
+
+// need YuriPosts to be Documents cuz yuriposts does not implement trait needed for isert
+#[post("/post_image")]
+pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
+    request: Json<PostImageRequest>)
+    -> HttpResponse {
+
+    let path = format!("./assets/posts/{}.jpg", &request.title);
+
+    let docs = YuriPosts {
+        path,
+        time: request.time.clone(),
+        author: request.author.clone(),
+        tags: request.tags.clone()
+    };
+
+    database.insert_one(docs, None).await.expect("Handle this error properly u lazy fuck");
+
+    HttpResponse::Ok().body("yeet")
 }

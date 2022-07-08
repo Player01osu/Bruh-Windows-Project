@@ -4,12 +4,18 @@ use mongodb::{Client, options::{ ClientOptions, FindOptions } };
 use mongodb::bson::{doc, Document};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct YuriPosts {
     pub path: String,
+    pub time: u64,
     pub author: String,
     pub tags: Vec<String>,
 }
+//impl<'a> Borrow<Borrowed + 'a> for YuriPosts {
+//    fn borrow(&self) -> &(Borrowed + 'a) {
+//        self
+//    }
+//}
 
 // TODO: Implement some sort of way to connect to other collections
 pub enum MongodbCollection {
@@ -55,6 +61,7 @@ impl MongodbDatabase {
                 break;
             }
         }
+
     }
 
     pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
@@ -77,7 +84,9 @@ impl MongodbDatabase {
 
         // Get a handle to a collection in the database.
         let collection = db.collection::<YuriPosts>("yuriPosts");
+
         collection
+
     }
 
 }
