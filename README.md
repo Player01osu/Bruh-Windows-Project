@@ -7,6 +7,8 @@ Built using actix framework and yew framework
 ## Requirements
 
 - Rust 1.58+
+- Trunk
+- wasm32-unknown-unknown compilation target
 
 ## Testing
 
