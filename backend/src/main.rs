@@ -51,6 +51,7 @@ pub async fn run() -> std::io::Result<()> {
             .service(actix_files::Files::new("/assets", "static/assets"))
             .service(
                 web::scope("/api")
+                    .service(actix_files::Files::new("/assets", "static/assets"))
                     .service(gallery_display)
                     .service(post_image)
                     .service(delete_post),
