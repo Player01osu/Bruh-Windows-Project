@@ -47,13 +47,14 @@ pub async fn run() -> std::io::Result<()> {
                 middleware::TrailingSlash::Trim,
             ))
             .app_data(database_data)
+            // Load assets
+            .service(actix_files::Files::new("/assets", "static/assets"))
             .service(
                 web::scope("/api")
                     .service(gallery_display)
                     .service(post_image)
                     .service(delete_post),
             )
-            .service(actix_files::Files::new("/assets", "static/assets"))
             .default_service(web::route().to(router));
 
         app_instance
