@@ -1,7 +1,11 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
-use mongodb::{Client, options::{ ClientOptions, FindOptions } };
-use mongodb::bson::{doc, Document};
+use mongodb::bson::serde_helpers::serialize_hex_string_as_object_id;
+use mongodb::bson::{doc, serde_helpers, Document};
+use mongodb::{
+    options::{ClientOptions, FindOptions},
+    Client,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
@@ -13,11 +17,6 @@ pub struct YuriPosts {
     pub tags: Vec<String>,
     pub time: u64,
 }
-//impl<'a> Borrow<Borrowed + 'a> for YuriPosts {
-//    fn borrow(&self) -> &(Borrowed + 'a) {
-//        self
-//    }
-//}
 
 // TODO: Implement some sort of way to connect to other collections
 pub enum MongodbCollection {
@@ -34,28 +33,32 @@ pub struct MongodbDatabase {
 
 impl MongodbDatabase {
     pub fn new(collection: Data<mongodb::Collection<YuriPosts>>) -> MongodbDatabase {
-        let mongodb_collection = MongodbDatabase {
-            collection,
-        };
+        let mongodb_collection = MongodbDatabase { collection };
         mongodb_collection
     }
 
     /// Generates a cursor for the collection, iterating through it and
     /// pushing its results to the vector for n amount of items.
-    pub async fn find(&self,
+    pub async fn find(
+        &self,
         filter: Document,
         find_options: Option<FindOptions>,
-        amount: u16) -> Vec<YuriPosts>{
+        amount: u16,
+    ) -> Vec<Document> {
+        let database: mongodb::Collection<Document> = self.collection.clone_with_type();
         let mut number: u16 = 0;
-        let mut cursor = self
-            .collection
+        let mut cursor = database
             .find(filter, find_options)
             .await
             .expect("Failed to generate find cursor");
-        let mut paths: Vec<YuriPosts> = Vec::new();
+        let mut paths: Vec<Document> = Vec::new();
 
-        while let Some(yuri_posts) = cursor.try_next().await.expect("Failed to iterate through cursor") {
-            println!("path: {}", yuri_posts.path);
+        while let Some(yuri_posts) = cursor
+            .try_next()
+            .await
+            .expect("Failed to iterate through cursor")
+        {
+            println!("path: {}", yuri_posts);
             paths.push(yuri_posts);
             number += 1;
             if number > amount {
@@ -67,22 +70,25 @@ impl MongodbDatabase {
 
     /// Generates a cursor for the collection, iterating through it and
     /// return one item.
-    pub async fn find_one(&self,
-        filter: Document,
-        find_options: Option<FindOptions>) -> YuriPosts{
+    pub async fn find_one(&self, filter: Document, find_options: Option<FindOptions>) -> YuriPosts {
         let mut cursor = self
             .collection
             .find(filter, find_options)
             .await
             .expect("Failed to generate find cursor");
 
-        return cursor.try_next().await.expect("Failed to iterate through cursor").expect("Failed to unwrap");
-        }
-
+        return cursor
+            .try_next()
+            .await
+            .expect("Failed to iterate through cursor")
+            .expect("Failed to unwrap");
+    }
 
     pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
         // Parse a connection string into an options struct.
-        let mut client_options = ClientOptions::parse("mongodb://localhost:27017").await.expect("bruh");
+        let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
+            .await
+            .expect("bruh");
 
         // Manually set an option.
         client_options.app_name = Some("My App".to_string());
@@ -102,7 +108,5 @@ impl MongodbDatabase {
         let collection = db.collection::<YuriPosts>("yuriPosts");
 
         collection
-
     }
-
 }

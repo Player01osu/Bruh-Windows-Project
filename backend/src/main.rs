@@ -1,28 +1,18 @@
 mod api;
 mod routing;
 
-use std::path::PathBuf;
-use actix_web::middleware::{Logger, self};
+use actix_web::middleware::{self, Logger};
 use actix_web::web::Bytes;
-use actix_web::{
-    web,
-    App,
-    HttpServer,
-};
-use actix_web::{
-    web::Data,
-};
+use actix_web::web::Data;
+use actix_web::{web, App, HttpServer};
 use routing::routes;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
-use api::task::{
-    gallery_display,
-    post_image,
-    delete_post,
-};
+use api::task::{delete_post, gallery_display, post_image};
 
-use routes::*;
 use api::mongo::{MongodbCollection, MongodbDatabase};
+use routes::*;
 
 fn main() -> anyhow::Result<()> {
     init()
@@ -40,25 +30,29 @@ pub async fn run() -> std::io::Result<()> {
         bytes: Bytes::from(include_bytes!("./static/404.html").to_vec()),
         path: PathBuf::from("static/404.html"),
     };
-    let route_handle = RouteHandle { response: not_found_page };
+    let route_handle = RouteHandle {
+        response: not_found_page,
+    };
     ROUTEMAP.insert("{{404}}".into(), route_handle);
 
     let database = MongodbDatabase::mongo_connect().await;
 
-    HttpServer::new(move|| {
+    HttpServer::new(move || {
         let database_data = Data::new(database.clone());
         let logger = Logger::default();
 
         let app_instance = App::new()
             .wrap(logger)
-            .wrap(middleware::NormalizePath::new(middleware::TrailingSlash::Trim))
+            .wrap(middleware::NormalizePath::new(
+                middleware::TrailingSlash::Trim,
+            ))
             .app_data(database_data)
             .service(
                 web::scope("/api")
                     .service(gallery_display)
                     .service(post_image)
-                    .service(delete_post)
-                )
+                    .service(delete_post),
+            )
             .service(actix_files::Files::new("/assets", "static/assets"))
             .default_service(web::route().to(router));
 

@@ -1,22 +1,15 @@
 use std::fmt::format;
 
-use actix_web::{HttpResponse, HttpResponseBuilder};
 use actix_web::http::StatusCode;
 use actix_web::web::JsonBody;
-use actix_web::{
-    get,
-    post,
-    delete,
-    web::Data,
-    web::Json,
-    web::Path,
-};
+use actix_web::{delete, get, post, web::Data, web::Json, web::Path};
+use actix_web::{HttpResponse, HttpResponseBuilder};
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use mongodb::{Client, options::ClientOptions, Database};
-use mongodb::bson::{Document};
+use mongodb::bson::Document;
+use mongodb::{options::ClientOptions, Client, Database};
 
 use super::mongo::{self, MongodbCollection, MongodbDatabase};
 
@@ -26,13 +19,13 @@ pub struct TaskIndentifier {
 }
 
 use futures::stream::TryStreamExt;
-use mongodb::{bson::doc, options::FindOptions};
 use mongo::YuriPosts;
+use mongodb::{bson::doc, options::FindOptions};
 
 pub struct Gallery {
-    show: Option<Json<Vec<YuriPosts>>>,
+    show: Option<Json<Vec<Document>>>,
     search_filters: Option<String>,
-    amount: u16
+    amount: u16,
 }
 
 impl Gallery {
@@ -40,7 +33,7 @@ impl Gallery {
         let generated = Gallery {
             show: None,
             search_filters: None,
-            amount
+            amount,
         };
         generated
     }
@@ -54,9 +47,11 @@ impl Gallery {
 
         let database = MongodbDatabase::new(database);
         let filter = doc! { "author": "Player01" };
-        let find_options = FindOptions::builder().sort(doc! { "_id": i32::from(1) }).build();
+        let find_options = FindOptions::builder()
+            .sort(doc! { "_id": i32::from(1) })
+            .build();
 
-        let paths: Vec<YuriPosts> = database.find(filter, Some(find_options), self.amount).await;
+        let paths: Vec<Document> = database.find(filter, Some(find_options), self.amount).await;
 
         if paths.is_empty() {
             self.show = None;
@@ -70,7 +65,9 @@ impl Gallery {
 }
 
 #[get("/gallery_display")]
-pub async fn gallery_display(database: Data<mongodb::Collection<YuriPosts>>) -> Json<Vec<YuriPosts>> {
+pub async fn gallery_display(
+    database: Data<mongodb::Collection<YuriPosts>>,
+) -> Json<Vec<Document>> {
     let mut generated = Gallery::new(20);
     generated.gen_gallery(database).await;
 
@@ -95,10 +92,15 @@ pub struct DeleteImageRequest {
 }
 
 #[post("/post_image")]
-pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
-    request: Json<PostImageRequest>)
-    -> HttpResponse {
-    let path = format!("./assets/posts/{}-{}-{}", &request.author, &request.time, &request.file_name);
+pub async fn post_image(
+    database: Data<mongodb::Collection<YuriPosts>>,
+    request: Json<PostImageRequest>,
+) -> HttpResponse {
+    let path = format!(
+        "./assets/posts/{}-{}-{}",
+        &request.author, &request.time, &request.file_name
+    );
+    let database: mongodb::Collection<YuriPosts> = database.clone_with_type();
 
     let docs = YuriPosts {
         title: request.title.clone(),
@@ -106,20 +108,30 @@ pub async fn post_image(database: Data<mongodb::Collection<YuriPosts>>,
         path,
         time: request.time.clone(),
         author: request.author.clone(),
-        tags: request.tags.clone()
+        tags: request.tags.clone(),
     };
 
-    database.insert_one(docs, None).await.expect("Handle this error properly u lazy fuck");
+    database
+        .insert_one(docs, None)
+        .await
+        .expect("Handle this error properly u lazy fuck");
 
     HttpResponse::Ok().body("yeet")
 }
 
 #[delete("/delete_post")]
-pub async fn delete_post(database: Data<mongodb::Collection<YuriPosts>>,
-    request: Json<DeleteImageRequest>) -> HttpResponse {
+pub async fn delete_post(
+    database: Data<mongodb::Collection<YuriPosts>>,
+    request: Json<DeleteImageRequest>,
+) -> HttpResponse {
     let filter = doc! { "path": format!("./assets/posts/{}-{}-{}", &request.author, &request.time, &request.file_name) };
+    //let collection = MongodbDatabase::new(&database);
+    //let query = collection.find_one(request.file_name, None);
 
-    database.delete_one(filter, None).await.expect("Handle this pweeze");
+    database
+        .delete_one(filter, None)
+        .await
+        .expect("Handle this pweeze");
 
     HttpResponse::Ok().body("Deleted")
 }
