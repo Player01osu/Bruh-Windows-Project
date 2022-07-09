@@ -10,13 +10,15 @@ Built using actix framework and yew framework
 
 ## Testing
 
-`cargo build`
+```sh
+$ cargo build
 
-`./link.sh`
+$ ./link.sh
 
-`cd ./target/debug/`
+$ cd ./target/debug/
 
-`./backend`
+$ ./backend
+```
 
 Binded on `localhost:8080`
 
