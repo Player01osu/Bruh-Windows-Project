@@ -28,7 +28,9 @@ Binded on `localhost:8080`
 
 Clone this repository
 
-`git clone https://github.com/player01osu/Bruh-Web-Server.git`
+```sh
+$ git clone https://github.com/player01osu/Bruh-Web-Server.git`
+```
 
 ## TODO
 
