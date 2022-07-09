@@ -86,9 +86,7 @@ pub struct PostImageRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DeleteImageRequest {
-    file_name: String,
-    author: String,
-    time: u64,
+    title: String,
 }
 
 #[post("/post_image")]
@@ -124,9 +122,7 @@ pub async fn delete_post(
     database: Data<mongodb::Collection<YuriPosts>>,
     request: Json<DeleteImageRequest>,
 ) -> HttpResponse {
-    let filter = doc! { "path": format!("./assets/posts/{}-{}-{}", &request.author, &request.time, &request.file_name) };
-    //let collection = MongodbDatabase::new(&database);
-    //let query = collection.find_one(request.file_name, None);
+    let filter = doc! { "title": format!("{}", &request.title) };
 
     database
         .delete_one(filter, None)
