@@ -1,5 +1,5 @@
-use reqwasm::http::{Headers, Request};
-use serde::{Deserialize, Serialize};
+//use reqwasm::http::{Headers, Request};
+//use serde::{Deserialize, Serialize};
 use yew::html::Scope;
 use yew::prelude::*;
 use yew::{html, Component, Context, Html};
@@ -25,22 +25,19 @@ struct Image {
     pub author: String,
     pub path: String,
     pub time: usize,
-    pub width: String,
-    pub height: String,
+    pub width: usize,
 }
 
 impl Image {
     pub fn toggle_expand(&mut self) {
         match &self.state {
-            ImageExpandState::Focus => {
-                self.height = "300".to_string();
-                self.width = "300".to_string();
-                self.state = ImageExpandState::Unfocus
-            }
             ImageExpandState::Unfocus => {
-                self.height = "100".to_string();
-                self.width = "100".to_string();
+                self.width = 600;
                 self.state = ImageExpandState::Focus
+            }
+            ImageExpandState::Focus => {
+                self.width = 200;
+                self.state = ImageExpandState::Unfocus
             }
         }
     }
@@ -51,9 +48,9 @@ impl App {
 
         html! {
             <div>
-                <img src={format!("{}", image.path)}
+                <img alt={format!("{} {}", image.author, image.title)}
+                    src={format!("{}", image.path)}
                     width={format!("{}", image.width)}
-                    height={format!("{}", image.height)}
                     onclick={link.callback(move |_| Msg::ToggleExpando(image_id))}/>
             </div>
         }
@@ -64,7 +61,7 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let images = vec![
             Image {
                 state: ImageExpandState::Unfocus,
@@ -72,8 +69,7 @@ impl Component for App {
                 author: "ur mom ".to_string(),
                 time: 21,
                 path: "test.jpg ".to_string(),
-                width: "100".to_string(),
-                height: "100".to_string(),
+                width: 200,
             },
             Image {
                 state: ImageExpandState::Unfocus,
@@ -81,15 +77,14 @@ impl Component for App {
                 author: "bro".to_string(),
                 time: 2001,
                 path: "assets/img/blah.jpg ".to_string(),
-                width: "100".to_string(),
-                height: "100".to_string(),
+                width: 200,
             },
         ];
 
         Self { images }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
@@ -101,7 +96,7 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let posts = self.images.chunks(21).enumerate().map(|(id, images)| {
+        let posts = self.images.chunks(self.images.len()).enumerate().map(|(_, images)| {
             let image_list = images
                 .iter()
                 .enumerate()
