@@ -755,11 +755,13 @@ name = "frontend"
 version = "0.1.0"
 dependencies = [
  "common",
+ "futures",
  "gloo-utils",
  "reqwasm",
  "serde",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
  "yew",
 ]
 

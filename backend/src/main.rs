@@ -60,7 +60,7 @@ pub async fn run() -> std::io::Result<()> {
 
         app_instance
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 7878))?
     .run()
     .await
 }
