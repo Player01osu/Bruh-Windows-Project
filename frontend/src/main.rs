@@ -105,7 +105,7 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let posts = self.images
+        let posts: Html = self.images
             .iter()
             .enumerate()
             .map(|(id, image)|{
@@ -115,13 +115,14 @@ impl Component for App {
                         {image_list}
                     </div>
                 }
-            });
+            })
+            .collect();
 
         html! {
             <>
                 <div>
                     <h1>{ "Click on image to expand!" }</h1>
-                    { for posts }
+                        { posts }
                 </div>
             </>
         }
