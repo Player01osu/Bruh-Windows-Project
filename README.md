@@ -9,6 +9,7 @@ Built using actix framework and yew framework
 - Rust 1.58+
 - Trunk
 - wasm32-unknown-unknown compilation target
+- Mongodb
 
 ## Testing
 
@@ -20,9 +21,20 @@ $ ./link.sh
 $ cd ./target/debug/
 
 $ ./backend
+
+```
+New shell
+```sh
+$ cd ./frontend
+
+$ trunk serve --proxy-backend=http://127.0.0.1:7878/api
 ```
 
-Binded on `localhost:8080`
+Frontend binded on `localhost:8080`
+
+Backend binded on `localhost:7878`
+
+Make sure mongodb is running on port `27017`
 
 ## Development
 
