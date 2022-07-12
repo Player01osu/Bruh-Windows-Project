@@ -32,11 +32,11 @@ impl Image {
     pub fn toggle_expand(&mut self) {
         match &self.state {
             ImageExpandState::Unfocus => {
-                self.width = 600;
+                self.width = 1200;
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.width = 200;
+                self.width = 500;
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -45,12 +45,12 @@ impl Image {
 
 impl App {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
-
         html! {
             <div>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!("{}", image.path)}
                     width={format!("{}", image.width)}
+                    loading="lazy"
                     onclick={link.callback(move |_| Msg::ToggleExpando(image_id))}/>
             </div>
         }
@@ -62,14 +62,15 @@ impl Component for App {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
+        let width = 500;
         let images = vec![
             Image {
                 state: ImageExpandState::Unfocus,
                 title: "Yuri mmm I love ".to_string(),
                 author: "ur mom ".to_string(),
                 time: 21,
-                path: "test.jpg ".to_string(),
-                width: 200,
+                path: "assets/posts/test.jpg ".to_string(),
+                width,
             },
             Image {
                 state: ImageExpandState::Unfocus,
@@ -77,7 +78,15 @@ impl Component for App {
                 author: "bro".to_string(),
                 time: 2001,
                 path: "assets/img/blah.jpg ".to_string(),
-                width: 200,
+                width,
+            },
+            Image {
+                state: ImageExpandState::Unfocus,
+                title: "frog".to_string(),
+                author: "crazzzy".to_string(),
+                time: 22,
+                path: "assets/posts/FB_IMG_1634517925950.png ".to_string(),
+                width,
             },
         ];
 
@@ -96,17 +105,17 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let posts = self.images.chunks(self.images.len()).enumerate().map(|(_, images)| {
-            let image_list = images
-                .iter()
-                .enumerate()
-                .map(|(id, image)| self.view_images(id, image, ctx.link()));
-            html! {
-                <div>
-                    {for image_list}
-                </div>
-            }
-        });
+        let posts = self.images
+            .iter()
+            .enumerate()
+            .map(|(id, image)|{
+                let image_list = self.view_images(id, image, ctx.link());
+                html! {
+                    <div>
+                        {image_list}
+                    </div>
+                }
+            });
 
         html! {
             <>
