@@ -5,6 +5,7 @@
   left: 0px;
   bottom: 0px;
   width: 200px;
+  z-index: 4;
 }
 
 .container {
@@ -65,4 +66,54 @@
 
 .links {
   margin-top: 50px;
+  z-index: 5;
+}
+
+.header-all {
+  top: 0px;
+  left: 200px;
+  right: 0px;
+  position: absolute;
+  background-color: rgba(103, 40, 107, 0.9);
+  opacity: 0.65;
+  z-index: 1;
+  height: 80px;
+}
+
+.header {
+  color: aqua;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: large;
+}
+.imge-all {
+  position: relative;
+  right: 0px;
+  top: 100px;
+  border: 2px solid red;
+  z-index: 3;
+  left: 200px;
+  margin-right: 220px;
+}
+
+.images {
+  border: 2px solid red;
+}
+.images > div {
+  display: inline;
+}
+.yuri-img {
+  max-height: 200px;
+}
+.info {
+  display: inline;
+}
+.indiv {
+  transition: border-bottom 0.5s;
+}
+
+.indiv:hover {
+  border-bottom: 1px solid rgb(44, 14, 47);
+}
+.link {
+  color: rgb(68, 4, 71);
 }
