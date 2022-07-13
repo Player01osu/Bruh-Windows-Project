@@ -98,11 +98,12 @@ display: flex;
 }
 
 .imge {
-    display: block;
+   
     margin-left: auto;
     margin-right: auto;
     height: 600px;
     width: 500px;
+    border: 1px solid red;
 }
 
 .image-one {
@@ -130,6 +131,17 @@ display: flex;
     border: 1px solid red;
     
 }
+
+.ima {
+
+    background-image: url(../img/bruh_house.png);
+    border: 2px solid red;
+    color: red;
+    top: 50px;
+    left: 500px;
+    height: 500px;
+}
+
 /*
 .container {
     width: 100%;
