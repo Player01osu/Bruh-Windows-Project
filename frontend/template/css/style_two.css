@@ -66,6 +66,7 @@
 
 .links {
   margin-top: 50px;
+  z-index: 5;
 }
 
 .header-all {
@@ -84,31 +85,27 @@
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   font-size: large;
 }
-.tags-all {
+.imge-all {
   position: relative;
-
-  background-color: rgba(103, 40, 107, 0.9);
-  opacity: 0.65;
-
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
+  right: 0px;
   top: 100px;
-  height: 200px;
-}
-.tags {
-  font-size: large;
-}
-.tag-link {
-  color: white;
+  border: 2px solid red;
+  z-index: 3;
+  left: 200px;
+  margin-right: 220px;
 }
 
-.tags > div {
-  display: inline;
-  transition: border-bottom 0.8s;
+.images {
+  border: 2px solid red;
 }
-.tags > div:hover {
-  border-bottom: 2px solid rgb(115, 8, 165);
+.images > div {
+  display: inline;
+}
+.yuri-img {
+  max-height: 200px;
+}
+.info {
+  display: inline;
 }
 .indiv {
   transition: border-bottom 0.5s;

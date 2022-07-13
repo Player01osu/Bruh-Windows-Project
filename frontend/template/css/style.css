@@ -84,31 +84,54 @@
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   font-size: large;
 }
-.tags-all {
+
+.images > div {
+  border: 3px solid rgb(44, 14, 47);
+}
+
+.images {
   position: relative;
-
-  background-color: rgba(103, 40, 107, 0.9);
-  opacity: 0.65;
-
+  /* left: 39.5vw;*/
   left: 50%;
   transform: translateX(-50%);
-  width: 500px;
-  top: 100px;
-  height: 200px;
-}
-.tags {
-  font-size: large;
-}
-.tag-link {
-  color: white;
+  width: 510px;
 }
 
-.tags > div {
-  display: inline;
-  transition: border-bottom 0.8s;
+.images {
+  margin-top: 100px;
 }
-.tags > div:hover {
-  border-bottom: 2px solid rgb(115, 8, 165);
+
+.yuri-img {
+  margin-left: auto;
+  margin-right: auto;
+
+  max-width: 99.9%;
+  width: 510px;
+}
+
+.img-nav {
+  word-wrap: break-word;
+}
+.image-indiv {
+  display: inline-flex;
+}
+.info {
+  word-wrap: break-word;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  margin-left: 10px;
+  border: 3px solid blue;
+  width: 200px;
+  /* width: 165px;
+    left: 730px;
+    top: 54px;
+    */
+}
+.body {
+  z-index: -1;
+}
+.links {
+  z-index: 54;
 }
 .indiv {
   transition: border-bottom 0.5s;
