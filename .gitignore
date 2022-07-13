@@ -20,3 +20,4 @@ common/target/.rustc_info.json
 common/target/CACHEDIR.TAG
 target
 frontend/dist
+Cargo.lock
