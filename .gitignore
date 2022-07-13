@@ -21,3 +21,4 @@ common/target/CACHEDIR.TAG
 target
 frontend/dist
 Cargo.lock
+frontend/dist
