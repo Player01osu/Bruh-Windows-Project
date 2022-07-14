@@ -1,4 +1,4 @@
-use reqwasm::http::{Request};
+use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use yew::html::Scope;
 use yew::prelude::*;
@@ -26,14 +26,15 @@ pub struct Image {
     pub author: String,
     pub path: String,
     pub time: usize,
-    pub width: usize,
+    pub tags: String,
+    pub class: String,
+    //pub width: usize,
 }
-
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Id {
     #[serde(rename = "$oid")]
-    oid: String
+    oid: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -52,11 +53,11 @@ impl Image {
     pub fn toggle_expand(&mut self) {
         match &self.state {
             ImageExpandState::Unfocus => {
-                self.width = 1300;
+                self.class = "yuri-img-clicked".to_string();
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.width = 550;
+                self.class = "yuri-img".to_string();
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -66,64 +67,36 @@ impl Image {
 impl App {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
         html! {
-            <div>
+            <div class="image-indiv">
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!("{}", image.path)}
-                    width={format!("{}", image.width)}
+                    class={format!("{}", image.class)}
+                    //style={format!("max-width: {}px;", image.width)}
                     loading="lazy"
                     onclick={link.callback(move |_| Msg::ToggleExpando(image_id))}/>
+                <div class="info">
+                    <p>{format!("{}", image.tags)}</p>
+                </div>
             </div>
         }
     }
 }
-
 
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        ctx.link().send_future(
-            async {
-                let fetched_images: Vec<ImageRequest> = Request::get("/api/gallery_display")
-                    .send()
-                    .await
-                    .unwrap()
-                    .json()
-                    .await
-                    .unwrap();
-                Msg::QueryImages(fetched_images)
-            }
-        );
-
-        //let width = 550;
-        //let images = vec![
-        //    Image {
-        //        state: ImageExpandState::Unfocus,
-        //        title: "Yuri mmm I love ".to_string(),
-        //        author: "ur mom ".to_string(),
-        //        time: 21,
-        //        path: "assets/posts/test.jpg ".to_string(),
-        //        width,
-        //    },
-        //    Image {
-        //        state: ImageExpandState::Unfocus,
-        //        title: "Ay".to_string(),
-        //        author: "bro".to_string(),
-        //        time: 2001,
-        //        path: "assets/img/blah.jpg ".to_string(),
-        //        width,
-        //    },
-        //    Image {
-        //        state: ImageExpandState::Unfocus,
-        //        title: "frog".to_string(),
-        //        author: "crazzzy".to_string(),
-        //        time: 22,
-        //        path: "assets/posts/FB_IMG_1634517925950.png ".to_string(),
-        //        width,
-        //    },
-        //];
-
+        ctx.link().send_future(async {
+            let fetched_images: Vec<ImageRequest> = Request::get("/api/gallery_display")
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+            Msg::QueryImages(fetched_images)
+        });
         let new_image_vec: Vec<Image> = Vec::new();
 
         return Self {
@@ -142,12 +115,13 @@ impl Component for App {
             Msg::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
-                            state: ImageExpandState::Unfocus,
-                            title: image.title,
-                            author: image.author,
-                            path: image.path,
-                            time: image.time,
-                            width: 550,
+                        state: ImageExpandState::Unfocus,
+                        title: image.title,
+                        author: image.author,
+                        path: image.path,
+                        time: image.time,
+                        tags: image.tags.concat(),
+                        class: "yuri-img".to_string(),
                     })
                 }
                 true
@@ -172,22 +146,69 @@ impl Component for App {
 
         html! {
             <>
-                <div>
-                    <div class={ "header-all" }>
-                        <div class={ "header" }>
-                            <h1>{ "Wholesome Yuri" }</h1>
-                        </div>
+                <div class={ "header-all" }>
+                    <div class={ "header" }>
+                        <h1>{ "Wholesome Yuri" }</h1>
                     </div>
+                </div>
 
-                    <div class={ "container" }>
-                        { posts }
+                <div class={"container"}>
+
+                    <div class="navall">
+                            <div class="nav">
+                                    <form action="" class="search-bar">
+                                            <input type="text" class="search" placeholder="search tag or somth" name="q"/>
+                                    </form>
+                                    <div class="nav-img">
+                                            <div>
+                                                    <img class="imge" src="assets/img/blah.jpg" alt="nav-img"/>
+                                            </div>
+                                    </div>
+                                <center>
+                                        <div class="links">
+                                                <div class="indiv">
+                                                        <div>
+                                                                <a href="layout2.html"
+                                                                    class="link"
+                                                                    style="text-decoration: none;">{"LAYOUT2"}</a>
+                                                        </div>
+                                                </div>
+                                                <div class="indiv">
+                                                        <div>
+                                                                <a href="tags.html"
+                                                                    class="link"
+                                                                    style="text-decoration: none;">{"TAGS"}</a>
+                                                        </div>
+                                                </div>
+                                                <div class="indiv">
+                                                        <div>
+                                                                <a href="layout2.html"
+                                                                    class="link"
+                                                                    style="text-decoration: none;">{"ABOUT"}</a>
+                                                        </div>
+                                                </div>
+                                                <div class="indiv">
+                                                        <div>
+                                                                <a href="about.html"
+                                                                    class="link"
+                                                                    style="text-decoration: none;">{"SAMPLE"}</a>
+                                                        </div>
+                                                </div>
+                                        </div>
+
+                                </center>
+                            </div>
                     </div>
+                </div>
+
+                <div class={ "images" }>
+                    { posts }
                 </div>
             </>
         }
     }
 }
 fn main() {
-        println!("hi");
+    println!("hi");
     yew::start_app::<App>();
 }
