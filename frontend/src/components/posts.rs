@@ -54,7 +54,13 @@ impl Posts {
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}/>
                 <div class="info">
-                    <p>{format!("{:?}", image.tags.as_ref().unwrap_or(&vec![String::new()]))}</p>
+                    <p>{format!("{}", image.tags
+                                .as_ref()
+                                .unwrap_or(&vec![String::new()])
+                                .join(&" ")
+                                )
+                        }
+                    </p>
                 </div>
             </div>
         }
