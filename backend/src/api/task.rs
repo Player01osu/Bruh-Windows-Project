@@ -1,15 +1,11 @@
-use std::fmt::format;
-
 use actix_web::http::StatusCode;
 use actix_web::web::JsonBody;
 use actix_web::{delete, get, post, web::Data, web::Json, web::Path};
 use actix_web::{HttpResponse, HttpResponseBuilder};
 
-use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use mongodb::bson::Document;
-use mongodb::{options::ClientOptions, Client, Database};
 
 use super::mongo::{self, MongodbCollection, MongodbDatabase};
 
@@ -18,8 +14,7 @@ pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use futures::stream::TryStreamExt;
-use mongo::YuriPosts;
+use common::mongodb::structs::YuriPosts;
 use mongodb::{bson::doc, options::FindOptions};
 
 pub struct Gallery {
@@ -80,7 +75,7 @@ pub struct PostImageRequest {
     author: String,
     op: String,
     time: u64,
-    tags: Vec<String>,
+    tags: Option<Vec<String>>,
     file_name: String,
 }
 
@@ -107,6 +102,7 @@ pub async fn post_image(
         time: request.time.clone(),
         author: request.author.clone(),
         tags: request.tags.clone(),
+        ..Default::default()
     };
 
     database

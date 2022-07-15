@@ -1,51 +1,31 @@
 use reqwasm::http::Request;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use yew::html::Scope;
-use yew::prelude::*;
 use yew::{html, Component, Context, Html};
 
-pub struct Posts {
-    images: Vec<Image>,
-}
-
-pub enum ImageMessage {
-    ToggleExpando(usize),
-    QueryImages(Vec<ImageRequest>),
-}
+use common::mongodb::structs::{
+    ImageExpandState,
+    ImageMessage,
+    ImageRequest, PostStats, Comment,
+};
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
-pub enum ImageExpandState {
-    Unfocus,
-    Focus,
-}
-
-#[derive(Properties, Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
     pub state: ImageExpandState,
     pub title: String,
     pub author: String,
+    pub op: String,
     pub path: String,
+    #[serde(rename = "postStats")]
+    pub post_stats: PostStats,
+    pub comments: Option<Vec<Comment>>,
     pub time: usize,
-    pub tags: String,
+    pub tags: Option<Vec<String>>,
     pub class: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-struct Id {
-    #[serde(rename = "$oid")]
-    oid: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct ImageRequest {
-    #[serde(rename = "_id")]
-    _id: Id,
-    title: String,
-    author: String,
-    op: String,
-    time: usize,
-    tags: Vec<String>,
-    path: String,
+pub struct Posts {
+    images: Vec<Image>,
 }
 
 impl Image {
@@ -74,7 +54,13 @@ impl Posts {
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}/>
                 <div class="info">
-                    <p>{format!("{}", image.tags)}</p>
+                    <p>{format!("{}", image.tags
+                                .as_ref()
+                                .unwrap_or(&vec![String::new()])
+                                .join(&" ")
+                                )
+                        }
+                    </p>
                 </div>
             </div>
         }
@@ -117,9 +103,12 @@ impl Component for Posts {
                         state: ImageExpandState::Unfocus,
                         title: image.title,
                         author: image.author,
+                        op: image.op,
                         path: image.path,
+                        post_stats: image.post_stats,
                         time: image.time,
-                        tags: image.tags.concat(),
+                        tags: image.tags,
+                        comments: image.comments,
                         class: "yuri-img".to_string(),
                     })
                 }

@@ -19,7 +19,7 @@
       rgba(140, 34, 119, 0.9),
       rgb(97, 9, 148, 0.9)
     ),
-    url(../img/Alimari_Touhou_Project.jpg);
+    url(assets/img/Alimari_Touhou_Project.jpg);
   background-position: center;
   background-size: cover;
 }

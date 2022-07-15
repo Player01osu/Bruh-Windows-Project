@@ -1,6 +1,5 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
-use mongodb::bson::serde_helpers::serialize_hex_string_as_object_id;
 use mongodb::bson::{doc, serde_helpers, Document};
 use mongodb::{
     options::{ClientOptions, FindOptions},
@@ -8,15 +7,7 @@ use mongodb::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
-pub struct YuriPosts {
-    pub title: String,
-    pub op: String,
-    pub author: String,
-    pub path: String,
-    pub tags: Vec<String>,
-    pub time: u64,
-}
+use common::mongodb::structs::*;
 
 // TODO: Implement some sort of way to connect to other collections
 pub enum MongodbCollection {
