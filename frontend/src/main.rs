@@ -4,11 +4,12 @@ use yew::html::Scope;
 use yew::prelude::*;
 use yew::{html, Component, Context, Html};
 
-struct App {
+struct App;
+struct Posts {
     images: Vec<Image>,
 }
 
-enum Msg {
+enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
 }
@@ -28,7 +29,6 @@ pub struct Image {
     pub time: usize,
     pub tags: String,
     pub class: String,
-    //pub width: usize,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -64,7 +64,7 @@ impl Image {
     }
 }
 
-impl App {
+impl Posts {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
         html! {
             <div class="image-indiv">
@@ -73,7 +73,7 @@ impl App {
                     class={format!("{}", image.class)}
                     //style={format!("max-width: {}px;", image.width)}
                     loading="lazy"
-                    onclick={link.callback(move |_| Msg::ToggleExpando(image_id))}/>
+                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}/>
                 <div class="info">
                     <p>{format!("{}", image.tags)}</p>
                 </div>
@@ -82,8 +82,8 @@ impl App {
     }
 }
 
-impl Component for App {
-    type Message = Msg;
+impl Component for Posts {
+    type Message = ImageMessage;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
@@ -95,7 +95,7 @@ impl Component for App {
                 .json()
                 .await
                 .unwrap();
-            Msg::QueryImages(fetched_images)
+            ImageMessage::QueryImages(fetched_images)
         });
         let new_image_vec: Vec<Image> = Vec::new();
 
@@ -106,13 +106,13 @@ impl Component for App {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ToggleExpando(image_id) => {
+            ImageMessage::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
 
                 image.toggle_expand();
                 true
             }
-            Msg::QueryImages(fetched_images) => {
+            ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
                         state: ImageExpandState::Unfocus,
@@ -128,7 +128,6 @@ impl Component for App {
             }
         }
     }
-
     fn view(&self, ctx: &Context<Self>) -> Html {
         let posts: Html = self
             .images
@@ -143,6 +142,29 @@ impl Component for App {
                 }
             })
             .collect();
+        html! {
+            <>
+                <div class={ "images" }>
+                    { posts }
+                </div>
+            </>
+        }
+    }
+}
+
+impl Component for App {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        true
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
 
         html! {
             <>
@@ -202,7 +224,7 @@ impl Component for App {
                 </div>
 
                 <div class={ "images" }>
-                    { posts }
+                    <Posts/>
                 </div>
             </>
         }
