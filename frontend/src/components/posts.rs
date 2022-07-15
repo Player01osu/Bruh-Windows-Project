@@ -16,8 +16,7 @@ pub struct Image {
     pub author: String,
     pub op: String,
     pub path: String,
-    #[serde(rename = "postStats")]
-    pub post_stats: PostStats,
+    pub stats: PostStats,
     pub comments: Option<Vec<Comment>>,
     pub time: usize,
     pub tags: Option<Vec<String>>,
@@ -105,7 +104,7 @@ impl Component for Posts {
                         author: image.author,
                         op: image.op,
                         path: image.path,
-                        post_stats: image.post_stats,
+                        stats: image.stats,
                         time: image.time,
                         tags: image.tags,
                         comments: image.comments,

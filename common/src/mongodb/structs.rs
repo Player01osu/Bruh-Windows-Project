@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct YuriPosts {
     pub title: String,
     pub author: String,
@@ -8,12 +9,12 @@ pub struct YuriPosts {
     pub tags: Option<Vec<String>>,
     pub path: String,
     pub comments: Option<Vec<Comment>>,
-    #[serde(rename = "postStats")]
-    pub post_stats: PostStats,
+    pub stats: PostStats,
     pub time: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Comment {
     pub commenter: String,
     pub body: String,
@@ -21,6 +22,7 @@ pub struct Comment {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PostStats {
     pub likes: u64,
     pub views: u64,
@@ -39,6 +41,7 @@ struct Id {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ImageRequest {
     #[serde(rename = "_id")]
     _id: Id,
@@ -47,8 +50,7 @@ pub struct ImageRequest {
     pub op: String,
     pub time: usize,
     pub tags: Option<Vec<String>>,
-    #[serde(rename = "postStats")]
-    pub post_stats: PostStats,
+    pub stats: PostStats,
     pub path: String,
     pub comments: Option<Vec<Comment>>,
 }
@@ -62,7 +64,7 @@ impl Default for YuriPosts {
             tags: None,
             path: "EMPTY".to_string(),
             comments: None,
-            post_stats: PostStats::default(),
+            stats: PostStats::default(),
             time: 0,
         }
     }

@@ -14,7 +14,7 @@ pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use common::mongodb::structs::YuriPosts;
+use common::mongodb::structs::{YuriPosts, PostStats, Comment};
 use mongodb::{bson::doc, options::FindOptions};
 
 pub struct Gallery {
@@ -97,12 +97,13 @@ pub async fn post_image(
 
     let docs = YuriPosts {
         title: request.title.clone(),
+        author: request.author.clone(),
         op: request.op.clone(),
         path,
         time: request.time.clone(),
-        author: request.author.clone(),
         tags: request.tags.clone(),
-        ..Default::default()
+        stats: PostStats::default(),
+        comments: None,
     };
 
     database

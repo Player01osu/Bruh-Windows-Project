@@ -6,7 +6,6 @@ use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use routing::routes;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use api::task::{delete_post, gallery_display, post_image};
