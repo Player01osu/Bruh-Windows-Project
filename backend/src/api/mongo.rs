@@ -8,15 +8,7 @@ use mongodb::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
-pub struct YuriPosts {
-    pub title: String,
-    pub op: String,
-    pub author: String,
-    pub path: String,
-    pub tags: Vec<String>,
-    pub time: u64,
-}
+use common::mongodb::structs::*;
 
 // TODO: Implement some sort of way to connect to other collections
 pub enum MongodbCollection {

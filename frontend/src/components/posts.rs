@@ -1,25 +1,15 @@
 use reqwasm::http::Request;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use yew::html::Scope;
-use yew::prelude::*;
 use yew::{html, Component, Context, Html};
 
-pub struct Posts {
-    images: Vec<Image>,
-}
-
-pub enum ImageMessage {
-    ToggleExpando(usize),
-    QueryImages(Vec<ImageRequest>),
-}
+use common::mongodb::structs::{
+    ImageExpandState,
+    ImageMessage,
+    ImageRequest,
+};
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
-pub enum ImageExpandState {
-    Unfocus,
-    Focus,
-}
-
-#[derive(Properties, Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
     pub state: ImageExpandState,
     pub title: String,
@@ -30,22 +20,8 @@ pub struct Image {
     pub class: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-struct Id {
-    #[serde(rename = "$oid")]
-    oid: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct ImageRequest {
-    #[serde(rename = "_id")]
-    _id: Id,
-    title: String,
-    author: String,
-    op: String,
-    time: usize,
-    tags: Vec<String>,
-    path: String,
+pub struct Posts {
+    images: Vec<Image>,
 }
 
 impl Image {
