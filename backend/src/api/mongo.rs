@@ -1,6 +1,5 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
-use mongodb::bson::serde_helpers::serialize_hex_string_as_object_id;
 use mongodb::bson::{doc, serde_helpers, Document};
 use mongodb::{
     options::{ClientOptions, FindOptions},

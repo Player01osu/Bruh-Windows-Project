@@ -75,7 +75,7 @@ pub struct PostImageRequest {
     author: String,
     op: String,
     time: u64,
-    tags: Vec<String>,
+    tags: Option<Vec<String>>,
     file_name: String,
 }
 
@@ -102,6 +102,7 @@ pub async fn post_image(
         time: request.time.clone(),
         author: request.author.clone(),
         tags: request.tags.clone(),
+        ..Default::default()
     };
 
     database
