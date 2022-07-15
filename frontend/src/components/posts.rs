@@ -3,11 +3,7 @@ use serde::Deserialize;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html};
 
-use common::mongodb::structs::{
-    ImageExpandState,
-    ImageMessage,
-    ImageRequest, PostStats, Comment,
-};
+use common::mongodb::structs::{Comment, ImageExpandState, ImageMessage, ImageRequest, PostStats};
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
@@ -53,12 +49,12 @@ impl Posts {
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}/>
                 <div class="info">
-                    <p>{format!("{}", image.tags
-                                .as_ref()
-                                .unwrap_or(&vec![String::new()])
-                                .join(&" ")
-                                )
-                        }
+                    <p>
+                    {format!("{}", image.tags
+                        .as_ref()
+                        .unwrap_or(&vec![String::new()])
+                        .join(&" ")
+                    )}
                     </p>
                 </div>
             </div>
