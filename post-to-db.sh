@@ -4,10 +4,9 @@
 prompt () {
 # prompts the user with message in $1-2 ($1 in blue, $2 in magenta) and saves the input to the variables in $REPLY and $REPLY2
 printf "\033[1;34mAuthor: \nOP: \nTags Wrapped in quotes (ex: \"nuts\", \"fart\", ...): \nFile name: \n%s\033[1;34m: \033[0m" "$1"
-read -r REPLY
+read -r TITLE
 }
 prompt "Title"
-TITLE="$REPLY"
 
 prompt () {
 # prompts the user with message in $1-2 ($1 in blue, $2 in magenta) and saves the input to the variables in $REPLY and $REPLY2
@@ -16,10 +15,9 @@ OP:
 Tags Wrapped in quotes (ex: \"nuts\", \"fart\", ...):
 File name:
 %s\033[1;34m: \033[0m" "$TITLE" "$1"
-read -r REPLY
+read -r AUTHOR
 }
 prompt "Author"
-AUTHOR="$REPLY"
 
 prompt () {
 # prompts the user with message in $1-2 ($1 in blue, $2 in magenta) and saves the input to the variables in $REPLY and $REPLY2
@@ -28,10 +26,9 @@ Author: \033[0m%s\033[1;34m
 Tags Wrapped in quotes (ex: \"nuts\", \"fart\", ...):
 File name:
 %s\033[1;34m: \033[0m" "$TITLE" "$AUTHOR" "$1"
-read -r REPLY
+read -r OP
 }
 prompt "OP"
-OP="$REPLY"
 
 TIME=$(date +%s)
 
@@ -42,22 +39,20 @@ Author: \033[0m%s\033[1;34m
 OP: \033[0m%s\033[1;34m
 File name:
 %s\033[1;34m: \033[0m" "$TITLE" "$AUTHOR" "$OP" "$1"
-read -r REPLY
+read -r TAGS
 }
 prompt "Tags Wrapped in quotes (ex: \"nuts\", \"fart\", ...)"
-TAGS="$REPLY"
 
 prompt () {
 # prompts the user with message in $1-2 ($1 in blue, $2 in magenta) and saves the input to the variables in $REPLY and $REPLY2
 printf "\n\n\033[1;34mTitle: \033[0m%s\033[1;34m
 Author: \033[0m%s\033[1;34m
 OP: \033[0m%s\033[1;34m
-TAGS: \033[0m%s\033[1;34m
+Tags Wrapped in quotes (ex: \"nuts\", \"fart\", ...): \033[0m%s\033[1;34m
 %s\033[1;34m: \033[0m" "$TITLE" "$AUTHOR" "$OP" "$TAGS" "$1"
-read -r REPLY
+read -r FILENAME
 }
 prompt "File name"
-FILENAME="$REPLY"
 
 FORMATED="{\"title\":\"$TITLE\",\"author\":\"$AUTHOR\",\"op\":\"$OP\",\"tags\":[$TAGS],\"time\":$TIME,\"file_name\":\"$FILENAME\"}"
 
