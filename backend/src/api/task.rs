@@ -39,7 +39,7 @@ impl Gallery {
         let database = MongodbDatabase::new(database);
         //let filter = doc! { "op": "Player01" };
         let find_options = FindOptions::builder()
-            .limit(3)
+            .limit(i64::from(self.amount))
             .build();
 
         let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
@@ -59,7 +59,7 @@ impl Gallery {
 pub async fn gallery_display(
     database: Data<mongodb::Collection<YuriPosts>>,
 ) -> Json<Vec<Document>> {
-    let mut generated = Gallery::new(20);
+    let mut generated = Gallery::new(10);
     generated.gen_gallery(database).await;
 
     return generated.show.unwrap();
