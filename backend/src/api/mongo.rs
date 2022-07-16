@@ -32,7 +32,7 @@ impl MongodbDatabase {
     /// pushing its results to the vector for n amount of items.
     pub async fn find(
         &self,
-        filter: Document,
+        filter: Option<Document>,
         find_options: Option<FindOptions>,
         amount: u16,
     ) -> Vec<Document> {

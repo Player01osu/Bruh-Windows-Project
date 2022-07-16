@@ -35,18 +35,14 @@ impl Gallery {
 
     async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>) -> &mut Self {
         // >query mongodb for 'yuriPosts'
-        // >find a mix of new posts and
-        // most viewed posts
-        // >limit to around 20 posts
-        // >return json of them
 
         let database = MongodbDatabase::new(database);
-        let filter = doc! { "author": "Player01" };
+        //let filter = doc! { "op": "Player01" };
         let find_options = FindOptions::builder()
-            .sort(doc! { "_id": i32::from(1) })
+            .limit(3)
             .build();
 
-        let paths: Vec<Document> = database.find(filter, Some(find_options), self.amount).await;
+        let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
 
         if paths.is_empty() {
             self.show = None;
