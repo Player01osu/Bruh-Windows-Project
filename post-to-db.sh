@@ -63,4 +63,4 @@ set -v
 curl --header "Content-Type: application/json" \
   --request POST \
   --data "$FORMATED" \
-  http://localhost:7878/api/post_image
+  http://localhost:7878/api/post_image & echo $AUTHOR-$TIME-$FILENAME | xclip -sel clip
