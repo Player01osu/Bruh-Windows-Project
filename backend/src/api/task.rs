@@ -33,14 +33,30 @@ impl Gallery {
         generated
     }
 
-    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>) -> &mut Self {
+    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>, sort: String) -> &mut Self {
         // >query mongodb for 'yuriPosts'
 
         let database = MongodbDatabase::new(database);
         //let filter = doc! { "op": "Player01" };
-        let find_options = FindOptions::builder()
-            .limit(i64::from(self.amount))
-            .build();
+
+        let find_options = match sort.as_str() {
+            "new" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"time":-1})
+                .build(),
+            "top" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"likes":-1})
+                .build(),
+            "views" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"views":-1})
+                .build(),
+            _ => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"time":-1})
+                .build()
+        };
 
         let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
 
@@ -60,10 +76,25 @@ pub async fn gallery_display(
     database: Data<mongodb::Collection<YuriPosts>>,
 ) -> Json<Vec<Document>> {
     let mut generated = Gallery::new(10);
-    generated.gen_gallery(database).await;
+    //generated.gen_gallery(database).await;
 
     return generated.show.unwrap();
 }
+
+#[get("/view-posts/{page_number}/{sort}")]
+pub async fn view_posts(
+    path: Path<(u16, String)>,
+    database: Data<mongodb::Collection<YuriPosts>>,
+) -> Json<Vec<Document>> {
+    let (page_number, sort) = path.into_inner();
+
+    let mut generated = Gallery::new(page_number * 10);
+
+    generated.gen_gallery(database, sort).await;
+
+    generated.show.unwrap()
+}
+
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PostImageRequest {

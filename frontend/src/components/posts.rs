@@ -68,7 +68,8 @@ impl Component for Posts {
 
     fn create(ctx: &Context<Self>) -> Self {
         ctx.link().send_future(async {
-            let fetched_images: Vec<ImageRequest> = Request::get("/api/gallery_display")
+            // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
+            let fetched_images: Vec<ImageRequest> = Request::get("/api/view-posts/1/new")
                 .send()
                 .await
                 .unwrap()

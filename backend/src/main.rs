@@ -8,7 +8,7 @@ use actix_web::{web, App, HttpServer};
 use routing::routes;
 use std::path::PathBuf;
 
-use api::task::{delete_post, gallery_display, post_image};
+use api::task::{delete_post, gallery_display, post_image, view_posts};
 
 use api::mongo::{MongodbCollection, MongodbDatabase};
 use routes::*;
@@ -52,6 +52,7 @@ pub async fn run() -> std::io::Result<()> {
                 web::scope("/api")
                     .service(actix_files::Files::new("/assets", "static/assets"))
                     .service(gallery_display)
+                    .service(view_posts)
                     .service(post_image)
                     .service(delete_post),
             )
