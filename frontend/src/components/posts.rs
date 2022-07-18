@@ -3,7 +3,7 @@ use serde::Deserialize;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html};
 
-use common::mongodb::structs::{Comment, ImageExpandState, ImageMessage, ImageRequest, PostStats};
+use common::mongodb::structs::{Comment, ImageExpandState, ImageMessage, ImageRequest, PostStats, Sort};
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
@@ -19,8 +19,11 @@ pub struct Image {
     pub class: String,
 }
 
+
 pub struct Posts {
     images: Vec<Image>,
+    page: u16,
+    sort: Sort,
 }
 
 impl Image {
@@ -47,13 +50,14 @@ impl Posts {
                     class={format!("{}", image.class)}
                     //style={format!("max-width: {}px;", image.width)}
                     loading="lazy"
-                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}/>
+                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
+                    />
                 <div class="info">
                     <p>
                     {format!("{}", image.tags
                         .as_ref()
                         .unwrap_or(&vec![String::new()])
-                        .join(&" ")
+                        .join(&", ")
                     )}
                     </p>
                 </div>
@@ -82,10 +86,12 @@ impl Component for Posts {
 
         return Self {
             images: new_image_vec,
+            page: 1,
+            sort: Sort::New,
         };
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             ImageMessage::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
@@ -93,6 +99,7 @@ impl Component for Posts {
                 image.toggle_expand();
                 true
             }
+
             ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
@@ -108,6 +115,29 @@ impl Component for Posts {
                         class: "yuri-img".to_string(),
                     })
                 }
+                true
+            }
+            ImageMessage::ShowMore => {
+                self.page += 1;
+                let api_request = match self.sort {
+                    Sort::New => format!("/api/view-posts/{}/new", self.page),
+                    Sort::Top => format!("/api/view-posts/{}/top", self.page),
+                    Sort::Views => format!("/api/view-posts/{}/views", self.page),
+                };
+                ctx.link().send_future(async move {
+                    // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
+                    let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
+                        .send()
+                        .await
+                        .unwrap()
+                        .json()
+                        .await
+                        .unwrap();
+                    ImageMessage::QueryImages(fetched_images)
+                });
+                let new_image_vec: Vec<Image> = Vec::new();
+
+                self.images = new_image_vec;
                 true
             }
         }
