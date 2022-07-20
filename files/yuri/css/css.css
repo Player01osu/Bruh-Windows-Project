@@ -94,7 +94,7 @@
 
 .images > div {
 
-    border: 3px solid rgb(44, 14, 47);
+   /* border: 3px solid rgb(44, 14, 47);*/
     
     
 }
@@ -104,29 +104,25 @@
    /* left: 39.5vw;*/
     left: 50%;
     transform: translateX(-50%);
-    width:510px;
-  
- 
+    width:500px;
+    margin-top: 100px;
+    /* border: 3px solid rgb(44, 14, 47) ; */
    
 }
 
-.images {
-    margin-top: 100px;
-}
+
 
 .yuri-img {
     
     margin-left: auto;
     margin-right: auto;
-   
     max-width: 99.9%;
     width: 510px;
+    margin-bottom: 15px;
   
 }
 
-.image-one {
-    
-}
+
 .img-nav {
     
     word-wrap: break-word;
@@ -134,18 +130,35 @@
 .image-indiv {
    display: inline-flex;
 }
+
 .info {
     
     word-wrap: break-word;
+    /*
     margin-top: 50px;
-    margin-bottom: 50px;
+    margin-bottom: 50px; */
+    height: 250px;
     margin-left: 10px;
-    border: 3px solid blue;
     width: 200px;
+    
+    color: rgb(207, 44, 175);
+    font-weight: 500;
    /* width: 165px;
     left: 730px;
     top: 54px;
     */
+}
+.user-inter {
+   
+    opacity: .8;
+    position:absolute;
+    margin-top: 6px;
+    right: 511px;
+    height: 120px;
+    width: 70px;
+    display: inline-flex;
+    justify-content: center;
+
 }
 .body {
     z-index: -1;
@@ -165,4 +178,41 @@
 }
 .link {
     color: rgb(68, 4, 71);
+}
+.heart {
+    border: none;
+    background: none;
+    width: 60px;
+    height: 60px;
+    display: inline-flex;
+}
+.heart > ion-icon {
+    display: inline-flex;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    margin-top: 5px;
+}
+.heart:hover {
+    color: rgb(224, 10, 10);
+    opacity: 0.8;
+}
+.heart:active {
+ 
+}
+.comments {
+    border: none;
+    background: none;
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    top: 60px;
+}
+.comments > ion-icon {
+    width: 45px;
+    height: 45px;
+}
+.comments:hover {
+    color: rgb(189, 3, 189);
+    opacity: 0.8;
 }

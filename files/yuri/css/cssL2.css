@@ -106,21 +106,39 @@ z-index: 5;
 }
 .images > div {
    
-   display: inline;
-  
-    
+   display: inline-flex;
     
 }
 .yuri-img {
     max-height: 200px;
-    
-    
+    border: 2px solid red;  
+ 
+}
+.image-indiv {
+    border: 2px solid orange;  
+   
 }
 .images > img {
     
 }
+.image-indiv > .info {
+    
+    
+}
 .info {
-    display: inline;
+    width: 100px;
+    height: 100px;
+    word-wrap: break-word;
+    position: absolute;
+    border: 2px solid orange; 
+    font-size: 12px;
+    opacity: 0;
+    color: blue;
+    margin-left: 5px;
+    
+}
+.info:hover {
+    opacity: 1;
 }
 .indiv {
     transition: border-bottom 0.5s;
