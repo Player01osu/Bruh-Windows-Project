@@ -45,6 +45,7 @@ pub struct Posts {
     images: Vec<Image>,
     page: u16,
     sort: Sort,
+    scroll_bottom_buffer: u16,
 }
 
 impl Image {
@@ -109,6 +110,7 @@ impl Component for Posts {
             images: new_image_vec,
             page: 1,
             sort: Sort::New,
+            scroll_bottom_buffer: 0,
         };
     }
 
@@ -139,27 +141,33 @@ impl Component for Posts {
                 true
             }
             ImageMessage::ShowMore => {
-                self.page += 1;
-                let api_request = match self.sort {
-                    Sort::New => format!("/api/view-posts/{}/new", self.page),
-                    Sort::Top => format!("/api/view-posts/{}/top", self.page),
-                    Sort::Views => format!("/api/view-posts/{}/views", self.page),
-                };
-                ctx.link().send_future(async move {
-                    // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
-                    let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
-                        .send()
-                        .await
-                        .unwrap()
-                        .json()
-                        .await
-                        .unwrap();
-                    ImageMessage::QueryImages(fetched_images)
-                });
-                let new_image_vec: Vec<Image> = Vec::new();
+                if self.scroll_bottom_buffer == 0 {
+                    self.page += 1;
+                    let api_request = match self.sort {
+                        Sort::New => format!("/api/view-posts/{}/new", self.page),
+                        Sort::Top => format!("/api/view-posts/{}/top", self.page),
+                        Sort::Views => format!("/api/view-posts/{}/views", self.page),
+                    };
+                    ctx.link().send_future(async move {
+                        // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
+                        let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
+                            .send()
+                            .await
+                            .unwrap()
+                            .json()
+                            .await
+                            .unwrap();
+                        ImageMessage::QueryImages(fetched_images)
+                    });
+                    let mut new_image_vec: Vec<Image> = Vec::new();
+                    self.images.append(&mut new_image_vec);
+                    self.scroll_bottom_buffer = 40;
 
-                self.images = new_image_vec;
-                true
+                    true
+                } else {
+                    self.scroll_bottom_buffer -= 1;
+                    false
+                }
             }
             ImageMessage::No => {
                 false
@@ -192,7 +200,7 @@ impl Component for Posts {
                 .expect("Element id not found")
                 .scroll_height();
 
-            if scroll_y / f64::from(page_height) > 0.9 {
+            if scroll_y / f64::from(page_height) > 0.85 {
                 ImageMessage::ShowMore
             } else {
                 ImageMessage::No
