@@ -38,3 +38,4 @@ frontend/dist
 
 frontend/dist
 target/wasm32-unknown-unknown/debug
+frontend/.temp
