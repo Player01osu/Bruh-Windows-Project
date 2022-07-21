@@ -1,10 +1,22 @@
 mod components;
 
-use gloo_utils::document;
-use web_sys::{console, Document, Element, Event, WheelEvent};
-use yew::{html, Component, Context, Html};
-
 use components::posts::Posts;
+use gloo_utils::document;
+use web_sys::{console, Element, WheelEvent};
+use yew::{html, use_state, Component, Context, Html, NodeRef, Children};
+
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 struct App;
 
@@ -16,7 +28,7 @@ impl Component for App {
         Self
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         true
     }
 
@@ -40,10 +52,10 @@ impl Component for App {
                         .expect("Element id not found")
                         .scroll_height();
 
-                    if  scroll_y / f64::from(page_height) > 0.9 {
-                        console::log_1(&format!("Bottom").into());
+                    if scroll_y / f64::from(page_height) > 0.9 {
+                        console_log!("Bottom");
                     }
-                } } >
+                }}>
                     <div class={"container"}>
                         <div class="navall">
                             <div class="nav">
@@ -91,8 +103,10 @@ impl Component for App {
                         </div>
                     </div>
 
-                    <div class={ "images" }>
-                        <Posts/>
+                    <div>
+                        <div class={ "images" }>
+                            <Posts/>
+                        </div>
                     </div>
                 </div>
             </>

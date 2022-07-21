@@ -1,9 +1,16 @@
 use reqwasm::http::Request;
 use serde::Deserialize;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, Html, Properties, Children};
 
-use common::mongodb::structs::{Comment, ImageExpandState, ImageMessage, ImageRequest, PostStats, Sort};
+use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
+
+#[derive(Clone)]
+pub enum ImageMessage {
+    ToggleExpando(usize),
+    QueryImages(Vec<ImageRequest>),
+    ShowMore,
+}
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
@@ -18,7 +25,6 @@ pub struct Image {
     pub tags: Option<Vec<String>>,
     pub class: String,
 }
-
 
 pub struct Posts {
     images: Vec<Image>,
