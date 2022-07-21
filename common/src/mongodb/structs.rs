@@ -86,9 +86,8 @@ impl Default for Comment {
     }
 }
 
-
 pub enum Sort {
     New,
     Top,
-    Views
+    Views,
 }

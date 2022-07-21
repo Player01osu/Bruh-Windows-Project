@@ -1,5 +1,5 @@
-use yew::{html, Component, Context, Html};
 use super::sidebar::Sidebar;
+use yew::{html, Component, Context, Html};
 
 pub struct Container;
 

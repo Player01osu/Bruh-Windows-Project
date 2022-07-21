@@ -1,4 +1,3 @@
-
 use yew::{html, Component, Context, Html};
 
 pub struct Sidebar {

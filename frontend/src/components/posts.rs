@@ -1,10 +1,10 @@
+use crate::components::container::Container;
 use gloo_utils::document;
 use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::WheelEvent;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html};
-use crate::components::container::Container;
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
@@ -169,9 +169,7 @@ impl Component for Posts {
                     false
                 }
             }
-            ImageMessage::No => {
-                false
-            }
+            ImageMessage::No => false,
         }
     }
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -190,11 +188,7 @@ impl Component for Posts {
             .collect();
 
         let onwheel = ctx.link().callback(|wheel_event: WheelEvent| {
-            let scroll_y = wheel_event
-                .view()
-                .unwrap()
-                .scroll_y()
-                .unwrap();
+            let scroll_y = wheel_event.view().unwrap().scroll_y().unwrap();
             let page_height = document()
                 .get_element_by_id("loadOnBottom")
                 .expect("Element id not found")
