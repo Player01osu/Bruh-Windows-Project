@@ -34,13 +34,13 @@ pub enum ImageExpandState {
     Focus,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 struct Id {
     #[serde(rename = "$oid")]
     oid: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageRequest {
     #[serde(rename = "_id")]
@@ -86,7 +86,9 @@ impl Default for Comment {
     }
 }
 
-pub enum ImageMessage {
-    ToggleExpando(usize),
-    QueryImages(Vec<ImageRequest>),
+
+pub enum Sort {
+    New,
+    Top,
+    Views
 }

@@ -4,6 +4,7 @@ use serde::Deserialize;
 use web_sys::WheelEvent;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, Properties, Children};
+use crate::components::container::Container;
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
@@ -193,52 +194,7 @@ impl Component for Posts {
                         console_log!("Bottom");
                     }
                 }}>
-                    <div class={"container"}>
-                        <div class="navall">
-                            <div class="nav">
-                                    <form action="" class="search-bar">
-                                        <input type="text" class="search" placeholder="search tag or somth" name="q"/>
-                                    </form>
-                                    <div class="nav-img">
-                                        <div>
-                                            <img class="imge" src="assets/img/blah.jpg" alt="nav-img"/>
-                                        </div>
-                                    </div>
-                                <center>
-                                    <div class="links">
-                                        <div class="indiv">
-                                            <div>
-                                                <a href="layout2.html"
-                                                    class="link"
-                                                    style="text-decoration: none;">{"LAYOUT2"}</a>
-                                            </div>
-                                        </div>
-                                        <div class="indiv">
-                                            <div>
-                                                <a href="tags.html"
-                                                    class="link"
-                                                    style="text-decoration: none;">{"TAGS"}</a>
-                                            </div>
-                                        </div>
-                                        <div class="indiv">
-                                            <div>
-                                                <a href="layout2.html"
-                                                    class="link"
-                                                    style="text-decoration: none;">{"ABOUT"}</a>
-                                            </div>
-                                        </div>
-                                        <div class="indiv">
-                                            <div>
-                                                <a href="about.html"
-                                                    class="link"
-                                                    style="text-decoration: none;">{"SAMPLE"}</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </center>
-                            </div>
-                        </div>
-                    </div>
+                    <Container/>
                     <div class={ "images" }>
                         { posts }
                     </div>
