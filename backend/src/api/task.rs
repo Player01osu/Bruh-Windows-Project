@@ -71,16 +71,6 @@ impl Gallery {
     }
 }
 
-#[get("/gallery_display")]
-pub async fn gallery_display(
-    database: Data<mongodb::Collection<YuriPosts>>,
-) -> Json<Vec<Document>> {
-    let mut generated = Gallery::new(10);
-    //generated.gen_gallery(database).await;
-
-    return generated.show.unwrap();
-}
-
 #[get("/view-posts/{page_number}/{sort}")]
 pub async fn view_posts(
     path: Path<(u16, String)>,
