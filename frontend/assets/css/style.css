@@ -72,7 +72,7 @@
 
 .header-all {
   top: 0px;
-  left: 200px;
+  left: 0px;
   right: 0px;
   position: absolute;
   background-color: rgba(103, 40, 107, 0.9);
@@ -85,6 +85,7 @@
   color: aqua;
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   font-size: large;
+  margin-left: 200px;
 }
 
 .images > div {
