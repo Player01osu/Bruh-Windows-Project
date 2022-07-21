@@ -1,0 +1,1 @@
+/home/bruh/Documents/code/web/Yuri-Web/target/wasm32-unknown-unknown/debug/frontend.wasm: /home/bruh/Documents/code/web/Yuri-Web/common/src/lib.rs /home/bruh/Documents/code/web/Yuri-Web/frontend/src/main.rs
