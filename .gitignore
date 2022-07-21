@@ -32,5 +32,8 @@ target/.rustc_info.json
 target/CACHEDIR.TAG
 target/**
 
+markdown/assets/img/*
+
 frontend/dist
 frontend/dist
+target/wasm32-unknown-unknown/debug
