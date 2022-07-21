@@ -24,6 +24,7 @@ pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
     ShowMore,
+    No,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
@@ -160,6 +161,9 @@ impl Component for Posts {
                 self.images = new_image_vec;
                 true
             }
+            ImageMessage::No => {
+                false
+            }
         }
     }
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -176,23 +180,28 @@ impl Component for Posts {
                 }
             })
             .collect();
+
+        let onwheel = ctx.link().callback(|wheel_event: WheelEvent| {
+            let scroll_y = wheel_event
+                .view()
+                .unwrap()
+                .scroll_y()
+                .unwrap();
+            let page_height = document()
+                .get_element_by_id("loadOnBottom")
+                .expect("Element id not found")
+                .scroll_height();
+
+            if scroll_y / f64::from(page_height) > 0.9 {
+                ImageMessage::ShowMore
+            } else {
+                ImageMessage::No
+            }
+        });
+
         html! {
             <>
-                <div id="loadOnBottom" onwheel={|wheel_event: WheelEvent| {
-                    let scroll_y = wheel_event
-                        .view()
-                        .unwrap()
-                        .scroll_y()
-                        .unwrap();
-                    let page_height = document()
-                        .get_element_by_id("loadOnBottom")
-                        .expect("Element id not found")
-                        .scroll_height();
-
-                    if scroll_y / f64::from(page_height) > 0.9 {
-                        console_log!("Bottom");
-                    }
-                }}>
+                <div id="loadOnBottom" {onwheel}>
                     <Container/>
                     <div class={ "images" }>
                         { posts }
