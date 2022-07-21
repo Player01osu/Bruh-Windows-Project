@@ -60,14 +60,16 @@ impl Gallery {
 
         let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
 
-        if paths.is_empty() {
-            self.show = None;
-            return self;
+        match paths.is_empty() {
+            true => {
+                self.show = None;
+                self
+            }
+            false => {
+                self.show = Some(Json(paths));
+                self
+            }
         }
-
-        self.show = Some(Json(paths));
-
-        self
     }
 }
 

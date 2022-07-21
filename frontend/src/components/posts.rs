@@ -194,10 +194,9 @@ impl Component for Posts {
                 .expect("Element id not found")
                 .scroll_height();
 
-            if scroll_y / f64::from(page_height) > 0.85 {
-                ImageMessage::ShowMore
-            } else {
-                ImageMessage::No
+            match scroll_y / f64::from(page_height) > 0.85 {
+                true => ImageMessage::ShowMore,
+                false => ImageMessage::No,
             }
         });
 
