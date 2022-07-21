@@ -23,3 +23,15 @@ frontend/dist
 Cargo.lock
 frontend/dist
 markdown/assets/img
+target/**
+frontend/dist/**
+target/debug/.fingerprint
+target/debug/deps
+target/debug/incremental
+target/debug
+target/.rustc_info.json
+target/CACHEDIR.TAG
+target/**
+
+frontend/dist
+frontend/dist
