@@ -154,3 +154,12 @@
 .link {
   color: rgb(68, 4, 71);
 }
+
+.bottomtext {
+  background-color: rgba(92, 11, 79, 0.5);
+  display: inline;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: large;
+  top: 0px;
+  left: 0px;
+}
