@@ -1,11 +1,4 @@
-use gloo_utils::document;
-use reqwasm::http::Request;
-use serde::Deserialize;
-use web_sys::WheelEvent;
-use yew::html::Scope;
-use yew::{html, Component, Context, Html, Properties, Children};
-
-use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
+use yew::{html, Component, Context, Html};
 
 pub struct Container;
 
@@ -13,11 +6,11 @@ impl Component for Container {
     type Message = ();
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <div class={"container"}>
                 <div class="navall">

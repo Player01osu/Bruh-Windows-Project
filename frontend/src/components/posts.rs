@@ -3,7 +3,7 @@ use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::WheelEvent;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, Properties, Children};
+use yew::{html, Component, Context, Html};
 use crate::components::container::Container;
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
@@ -20,7 +20,6 @@ macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-#[derive(Clone)]
 pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),

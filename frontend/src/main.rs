@@ -1,22 +1,9 @@
 mod components;
 
 use components::posts::Posts;
-use gloo_utils::document;
-use web_sys::{console, Element, WheelEvent};
-use yew::{html, use_state, Component, Context, Html, NodeRef, Children};
+use yew::{html, Component, Context, Html};
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
 
 struct App;
 
@@ -28,7 +15,7 @@ impl Component for App {
         Self
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
         true
     }
 
@@ -48,6 +35,5 @@ impl Component for App {
     }
 }
 fn main() {
-    console::log_1(&"hi".into());
     yew::start_app::<App>();
 }
