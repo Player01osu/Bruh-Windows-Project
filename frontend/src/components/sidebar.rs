@@ -63,28 +63,32 @@ impl Component for Sidebar {
                                     <div>
                                         <a href="layout2.html"
                                             class="link"
-                                            style="text-decoration: none;">{"LAYOUT2"}</a>
+                                            style="text-decoration: none;">{"LAYOUT2"}
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="indiv">
                                     <div>
                                         <a href="tags.html"
                                             class="link"
-                                            style="text-decoration: none;">{"TAGS"}</a>
+                                            style="text-decoration: none;">{"TAGS"}
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="indiv">
                                     <div>
                                         <a href="layout2.html"
                                             class="link"
-                                            style="text-decoration: none;">{"ABOUT"}</a>
+                                            style="text-decoration: none;">{"ABOUT"}
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="indiv">
                                     <div>
                                         <a href="about.html"
                                             class="link"
-                                            style="text-decoration: none;">{"SAMPLE"}</a>
+                                            style="text-decoration: none;">{"SAMPLE"}
+                                        </a>
                                     </div>
                                 </div>
                             </div>
