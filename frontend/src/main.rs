@@ -3,8 +3,6 @@ mod components;
 use components::posts::Posts;
 use yew::{html, Component, Context, Html};
 
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
 struct App;
 
 impl Component for App {
