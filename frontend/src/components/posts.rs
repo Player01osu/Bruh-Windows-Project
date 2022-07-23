@@ -4,7 +4,7 @@ use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::WheelEvent;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, Html, Properties};
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
@@ -26,6 +26,11 @@ pub enum ImageMessage {
     ShowMore,
     Like(usize),
     No,
+}
+
+#[derive(PartialEq, Properties)]
+pub struct PostProps {
+    pub sort: String,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
@@ -93,7 +98,9 @@ impl Posts {
         html! {
             <div class="image-indiv">
                 <div class="user-inter">
-                        <button type="button" class={format!("{}", image.heart_class)} onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
+                        <button type="button"
+                            class={format!("{}", image.heart_class)}
+                            onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
                             <ion-icon name="heart-outline"></ion-icon>
                         </button>
                         <button type="button" class="comments">
@@ -101,7 +108,7 @@ impl Posts {
                         </button>
                 </div>
                 <img alt={format!("{} {}", image.author, image.title)}
-                    src={format!("{}", image.path)}
+                    src={format!(".{}", image.path)}
                     class={format!("{}", image.class)}
                     //style={format!("max-width: {}px;", image.width)}
                     loading="lazy"
@@ -123,12 +130,14 @@ impl Posts {
 
 impl Component for Posts {
     type Message = ImageMessage;
-    type Properties = ();
+    type Properties = PostProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        ctx.link().send_future(async {
+        let sort = ctx.props().sort.clone();
+        let new_image_vec: Vec<Image> = Vec::new();
+        ctx.link().send_future(async move {
             // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
-            let fetched_images: Vec<ImageRequest> = Request::get("/api/view-posts/1/new")
+            let fetched_images: Vec<ImageRequest> = Request::get(format!{"/api/view-posts/1/{}", sort.clone()}.as_str())
                 .send()
                 .await
                 .unwrap()
@@ -137,12 +146,18 @@ impl Component for Posts {
                 .unwrap();
             ImageMessage::QueryImages(fetched_images)
         });
-        let new_image_vec: Vec<Image> = Vec::new();
+
+        let sort = match ctx.props().sort.as_str() {
+            "new" => Sort::New,
+            "top" => Sort::Top,
+            "views" => Sort::Views,
+            _ => Sort::New,
+        };
 
         return Self {
             images: new_image_vec,
             page: 1,
-            sort: Sort::New,
+            sort,
             scroll_bottom_buffer: 0,
         };
     }
@@ -177,32 +192,35 @@ impl Component for Posts {
                 true
             }
             ImageMessage::ShowMore => {
-                if self.scroll_bottom_buffer == 0 {
-                    self.page += 1;
-                    let api_request = match self.sort {
-                        Sort::New => format!("/api/view-posts/{}/new", self.page),
-                        Sort::Top => format!("/api/view-posts/{}/top", self.page),
-                        Sort::Views => format!("/api/view-posts/{}/views", self.page),
-                    };
-                    ctx.link().send_future(async move {
-                        // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
-                        let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
-                            .send()
-                            .await
-                            .unwrap()
-                            .json()
-                            .await
-                            .unwrap();
-                        ImageMessage::QueryImages(fetched_images)
-                    });
-                    let mut new_image_vec: Vec<Image> = Vec::new();
-                    self.images.append(&mut new_image_vec);
-                    self.scroll_bottom_buffer = 40;
+                match self.scroll_bottom_buffer {
+                    0 => {
+                        self.page += 1;
+                        let api_request = match self.sort {
+                            Sort::New => format!("/api/view-posts/{}/new", self.page),
+                            Sort::Top => format!("/api/view-posts/{}/top", self.page),
+                            Sort::Views => format!("/api/view-posts/{}/views", self.page),
+                        };
+                        ctx.link().send_future(async move {
+                            // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
+                            let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
+                                .send()
+                                .await
+                                .unwrap()
+                                .json()
+                                .await
+                                .unwrap();
+                            ImageMessage::QueryImages(fetched_images)
+                        });
+                        let mut new_image_vec: Vec<Image> = Vec::new();
+                        self.images.append(&mut new_image_vec);
+                        self.scroll_bottom_buffer = 40;
 
-                    true
-                } else {
-                    self.scroll_bottom_buffer -= 1;
-                    false
+                        true
+                    },
+                    _ => {
+                        self.scroll_bottom_buffer -= 1;
+                        false
+                    },
                 }
             }
 
@@ -213,33 +231,39 @@ impl Component for Posts {
                     true => {
                         let image = image.clone();
                         ctx.link().send_future(async move {
-                        Request::put(&format!("/api/like-post"))
-                            .header("Content-Type", "application/json")
-                            .body(&format!(r#"
+                            Request::put(&format!("/api/like-post"))
+                                .header("Content-Type", "application/json")
+                                .body(&format!(
+                                    r#"
                             {{
                                 "title": "{}",
                                 "path": "{}"
-                            }}"#, image.title, image.path))
-                            .send()
-                            .await
-                            .expect("Failed to send put request (/api/like-post/)");
-                        ImageMessage::No
+                            }}"#,
+                                    image.title, image.path
+                                ))
+                                .send()
+                                .await
+                                .expect("Failed to send put request (/api/like-post/)");
+                            ImageMessage::No
                         })
-                    },
+                    }
                     false => {
                         let image = image.clone();
                         ctx.link().send_future(async move {
-                        Request::put(&format!("/api/unlike-post"))
-                            .header("Content-Type", "application/json")
-                            .body(&format!(r#"
+                            Request::put(&format!("/api/unlike-post"))
+                                .header("Content-Type", "application/json")
+                                .body(&format!(
+                                    r#"
                             {{
                                 "title": "{}",
                                 "path": "{}"
-                            }}"#, image.title, image.path))
-                            .send()
-                            .await
-                            .expect("Failed to send put request (/api/unlike-post/)");
-                        ImageMessage::No
+                            }}"#,
+                                    image.title, image.path
+                                ))
+                                .send()
+                                .await
+                                .expect("Failed to send put request (/api/unlike-post/)");
+                            ImageMessage::No
                         })
                     }
                 };
@@ -257,7 +281,7 @@ impl Component for Posts {
             .map(|(id, image)| {
                 let image_list = self.view_images(id, image, ctx.link());
                 html! {
-                    {image_list}
+                    { image_list }
                 }
             })
             .collect();
@@ -278,7 +302,7 @@ impl Component for Posts {
 
         html! {
             <>
-                <div id="loadOnBottom" {onwheel}>
+                <div id="loadOnBottom" { onwheel }>
                     <Container/>
                     <div class={ "images" }>
                         { posts }

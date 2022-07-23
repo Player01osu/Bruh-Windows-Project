@@ -17,7 +17,7 @@ impl Component for ScrollTop {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            ScrollTopMsg::Clicked => false
+            ScrollTopMsg::Clicked => false,
         }
     }
 

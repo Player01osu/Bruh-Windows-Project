@@ -1,5 +1,5 @@
-use super::sidebar::Sidebar;
 use super::scrolltop::ScrollTop;
+use super::sidebar::Sidebar;
 use yew::{html, Component, Context, Html};
 
 pub struct Container;

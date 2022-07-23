@@ -54,7 +54,7 @@ impl Component for Sidebar {
                             </form>
                             <div class="nav-img">
                                 <div>
-                                    <img class="imge" src="assets/img/blah.jpg" alt="nav-img"/>
+                                    <img class="imge" src="../assets/img/blah.jpg" alt="nav-img"/>
                                 </div>
                             </div>
                         <center>

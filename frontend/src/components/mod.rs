@@ -1,4 +1,4 @@
-pub mod posts;
 pub mod container;
-pub mod sidebar;
+pub mod posts;
 pub mod scrolltop;
+pub mod sidebar;
