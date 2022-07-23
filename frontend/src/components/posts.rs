@@ -1,24 +1,10 @@
-use crate::components::container::Container;
-use gloo_utils::document;
 use reqwasm::http::Request;
 use serde::Deserialize;
-use web_sys::WheelEvent;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, Properties};
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
 
 pub enum ImageMessage {
     ToggleExpando(usize),
@@ -31,6 +17,8 @@ pub enum ImageMessage {
 #[derive(PartialEq, Properties)]
 pub struct PostProps {
     pub sort: String,
+    pub document_height: f64,
+    pub wheel_position: f64,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
@@ -169,8 +157,7 @@ impl Component for Posts {
 
                 image.toggle_expand();
                 true
-            }
-
+            },
             ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
@@ -190,7 +177,7 @@ impl Component for Posts {
                     })
                 }
                 true
-            }
+            },
             ImageMessage::ShowMore => {
                 match self.scroll_bottom_buffer {
                     0 => {
@@ -213,7 +200,7 @@ impl Component for Posts {
                         });
                         let mut new_image_vec: Vec<Image> = Vec::new();
                         self.images.append(&mut new_image_vec);
-                        self.scroll_bottom_buffer = 40;
+                        self.scroll_bottom_buffer = 20;
 
                         true
                     },
@@ -222,8 +209,7 @@ impl Component for Posts {
                         false
                     },
                 }
-            }
-
+            },
             ImageMessage::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
 
@@ -269,48 +255,40 @@ impl Component for Posts {
                         })
                     }
                 };
-
                 true
-            }
+            },
             ImageMessage::No => false,
         }
     }
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let posts: Html = self
+        let posts = self
             .images
             .iter()
             .enumerate()
             .map(|(id, image)| {
-                let image_list = self.view_images(id, image, ctx.link());
                 html! {
-                    { image_list }
+                    { self.view_images(id, image, ctx.link()) }
                 }
             })
-            .collect();
-
-        let onwheel = ctx.link().callback(|wheel_event: WheelEvent| {
-            // FIXME kinda inconsistent
-            let scroll_y = wheel_event.view().unwrap().scroll_y().unwrap();
-            let page_height = document()
-                .get_element_by_id("loadOnBottom")
-                .expect("Element id not found")
-                .scroll_height();
-
-            match scroll_y / f64::from(page_height) > 0.81 {
-                true => ImageMessage::ShowMore,
-                false => ImageMessage::No,
-            }
-        });
+            .collect::<Html>();
 
         html! {
             <>
-                <div id="loadOnBottom" { onwheel }>
-                    <Container/>
-                    <div class={ "images" }>
-                        { posts }
-                    </div>
+                <div class={ "images" }>
+                    { posts }
                 </div>
             </>
+        }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+        //console_log!("{}, {}", ctx.props().wheel_position, ctx.props().document_height);
+        match ctx.props().wheel_position / ctx.props().document_height > 0.8 {
+            true => {
+                ctx.link().send_message(ImageMessage::ShowMore);
+                true
+            },
+            false => false,
         }
     }
 }
