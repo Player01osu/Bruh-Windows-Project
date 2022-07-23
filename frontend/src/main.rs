@@ -1,9 +1,10 @@
 mod components;
 mod gallery;
+mod console_log;
 
 use components::header::Header;
 use components::container::Container;
-use gallery::{Gallery, GalleryViews, GalleryTop};
+use gallery::Gallery;
 use yew::{html, Component, Context, Html};
 use yew_router::{BrowserRouter, Switch, Routable};
 
@@ -46,8 +47,8 @@ pub fn switch(route: &Route) -> Html {
 pub fn gallery_switch(route: &GalleryRoute) -> Html {
     match route {
         GalleryRoute::New => html!{ <Gallery sort="new"/> },
-        GalleryRoute::Top => html!{ <GalleryTop sort="top"/> },
-        GalleryRoute::Views => html!{ <GalleryViews sort="views"/> },
+        GalleryRoute::Top => html!{ <Gallery sort="top"/> },
+        GalleryRoute::Views => html!{ <Gallery sort="views"/> },
     }
 }
 
