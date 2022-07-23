@@ -1,4 +1,4 @@
-use yew::{html, Component, Context, Html, Properties};
+use yew::{html, Component, Context, Html};
 
 pub struct Header;
 
@@ -6,15 +6,15 @@ impl Component for Header {
     type Properties = ();
     type Message = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
         true
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <>
                 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
