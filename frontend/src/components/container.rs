@@ -1,4 +1,5 @@
 use super::sidebar::Sidebar;
+use super::scrolltop::ScrollTop;
 use yew::{html, Component, Context, Html};
 
 pub struct Container;
@@ -15,6 +16,7 @@ impl Component for Container {
         html! {
             <div class={"container"}>
                 <Sidebar/>
+                <ScrollTop/>
             </div>
         }
     }

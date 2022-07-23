@@ -1,3 +1,4 @@
+use web_sys::MouseEvent;
 use yew::{html, Component, Context, Html};
 
 pub struct Sidebar {
