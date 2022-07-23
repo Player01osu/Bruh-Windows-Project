@@ -1,4 +1,5 @@
 use super::components::posts::Posts;
+use super::components::header::Header;
 use yew::{html, Component, Context, Html, Properties};
 use yew_router::{BrowserRouter, Switch, Routable};
 
@@ -27,14 +28,7 @@ impl Component for Gallery {
         html! {
             <>
                 <body style="background-color: black;">
-                    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-                    <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-                    <div class={ "header-all" }>
-                        <div class={ "header" }>
-                            <h1>{ "Wholesome Yuri" }</h1>
-                        </div>
-                    </div>
-
+                    <Header/>
                     <Posts sort={ctx.props().sort.clone()}/>
                 </body>
             </>
