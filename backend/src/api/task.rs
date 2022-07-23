@@ -1,6 +1,6 @@
 use actix_web::http::StatusCode;
 use actix_web::web::JsonBody;
-use actix_web::{delete, get, post, web::Data, web::Json, web::Path};
+use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
 use actix_web::{HttpResponse, HttpResponseBuilder};
 
 use serde::{Deserialize, Serialize};
@@ -46,11 +46,11 @@ impl Gallery {
                 .build(),
             "top" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"likes":-1})
+                .sort( doc! {"stats.likes":-1})
                 .build(),
             "views" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"views":-1})
+                .sort( doc! {"stats.views":-1})
                 .build(),
             _ => FindOptions::builder()
                 .limit(i64::from(self.amount))
@@ -103,6 +103,12 @@ pub struct DeleteImageRequest {
     title: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LikeImageRequest {
+    path: String,
+    title: String,
+}
+
 #[post("/post_image")]
 pub async fn post_image(
     database: Data<mongodb::Collection<YuriPosts>>,
@@ -146,4 +152,42 @@ pub async fn delete_post(
         .expect("Handle this pweeze");
 
     HttpResponse::Ok().body("Deleted")
+}
+
+#[put("/like-post")]
+pub async fn like_post(
+        request: Json<LikeImageRequest>,
+        database: Data<mongodb::Collection<YuriPosts>>
+) -> HttpResponse {
+    let filter = doc! {
+        "title": format!("{}", &request.title),
+        "path": format!("{}", &request.path)
+    };
+    let add_like = doc! { "$inc": { "stats.likes": 1 } };
+
+    database
+        .update_one(filter, add_like, None)
+        .await
+        .expect("Failed to add like");
+
+    HttpResponse::Ok().body("HTTP/1.1 201 Updated")
+}
+
+#[put("/unlike-post")]
+pub async fn unlike_post(
+        request: Json<LikeImageRequest>,
+        database: Data<mongodb::Collection<YuriPosts>>
+) -> HttpResponse {
+    let filter = doc! {
+        "title": format!("{}", &request.title),
+        "path": format!("{}", &request.path)
+    };
+    let remove_like = doc! { "$inc": { "stats.likes": -1 } };
+
+    database
+        .update_one(filter, remove_like, None)
+        .await
+        .expect("Failed to remove like");
+
+    HttpResponse::Ok().body("HTTP/1.1 201 Updated")
 }

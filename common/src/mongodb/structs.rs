@@ -35,16 +35,16 @@ pub enum ImageExpandState {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-struct Id {
+pub struct Id {
     #[serde(rename = "$oid")]
-    oid: String,
+    pub oid: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageRequest {
     #[serde(rename = "_id")]
-    _id: Id,
+    pub _id: Id,
     pub title: String,
     pub author: String,
     pub op: String,

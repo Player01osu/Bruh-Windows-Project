@@ -24,11 +24,13 @@ pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
     ShowMore,
+    Like(usize),
     No,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
 pub struct Image {
+    pub oid: String,
     pub state: ImageExpandState,
     pub title: String,
     pub author: String,
@@ -39,6 +41,8 @@ pub struct Image {
     pub time: usize,
     pub tags: Option<Vec<String>>,
     pub class: String,
+    pub heart_state: ImageLiked,
+    pub heart_class: String,
 }
 
 pub struct Posts {
@@ -46,6 +50,12 @@ pub struct Posts {
     page: u16,
     sort: Sort,
     scroll_bottom_buffer: u16,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub enum ImageLiked {
+    Liked,
+    Unliked,
 }
 
 impl Image {
@@ -61,12 +71,35 @@ impl Image {
             }
         }
     }
+
+    pub fn toggle_like(&mut self) -> bool {
+        match &self.heart_state {
+            ImageLiked::Liked => {
+                self.heart_class = "heart".to_string();
+                self.heart_state = ImageLiked::Unliked;
+                false
+            }
+            ImageLiked::Unliked => {
+                self.heart_class = "heart-liked".to_string();
+                self.heart_state = ImageLiked::Liked;
+                true
+            }
+        }
+    }
 }
 
 impl Posts {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
         html! {
             <div class="image-indiv">
+                <div class="user-inter">
+                        <button type="button" class={format!("{}", image.heart_class)} onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
+                            <ion-icon name="heart-outline"></ion-icon>
+                        </button>
+                        <button type="button" class="comments">
+                            <ion-icon name="chatbubble-outline"></ion-icon>
+                        </button>
+                </div>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!("{}", image.path)}
                     class={format!("{}", image.class)}
@@ -126,6 +159,7 @@ impl Component for Posts {
             ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
+                        oid: image._id.oid,
                         state: ImageExpandState::Unfocus,
                         title: image.title,
                         author: image.author,
@@ -136,6 +170,8 @@ impl Component for Posts {
                         tags: image.tags,
                         comments: image.comments,
                         class: "yuri-img".to_string(),
+                        heart_state: ImageLiked::Unliked,
+                        heart_class: "heart".to_string(),
                     })
                 }
                 true
@@ -169,6 +205,47 @@ impl Component for Posts {
                     false
                 }
             }
+
+            ImageMessage::Like(image_id) => {
+                let image = self.images.get_mut(image_id).unwrap();
+
+                match image.toggle_like() {
+                    true => {
+                        let image = image.clone();
+                        ctx.link().send_future(async move {
+                        Request::put(&format!("/api/like-post"))
+                            .header("Content-Type", "application/json")
+                            .body(&format!(r#"
+                            {{
+                                "title": "{}",
+                                "path": "{}"
+                            }}"#, image.title, image.path))
+                            .send()
+                            .await
+                            .expect("Failed to send put request (/api/like-post/)");
+                        ImageMessage::No
+                        })
+                    },
+                    false => {
+                        let image = image.clone();
+                        ctx.link().send_future(async move {
+                        Request::put(&format!("/api/unlike-post"))
+                            .header("Content-Type", "application/json")
+                            .body(&format!(r#"
+                            {{
+                                "title": "{}",
+                                "path": "{}"
+                            }}"#, image.title, image.path))
+                            .send()
+                            .await
+                            .expect("Failed to send put request (/api/unlike-post/)");
+                        ImageMessage::No
+                        })
+                    }
+                };
+
+                true
+            }
             ImageMessage::No => false,
         }
     }
@@ -180,21 +257,20 @@ impl Component for Posts {
             .map(|(id, image)| {
                 let image_list = self.view_images(id, image, ctx.link());
                 html! {
-                    <div>
-                        {image_list}
-                    </div>
+                    {image_list}
                 }
             })
             .collect();
 
         let onwheel = ctx.link().callback(|wheel_event: WheelEvent| {
+            // FIXME kinda inconsistent
             let scroll_y = wheel_event.view().unwrap().scroll_y().unwrap();
             let page_height = document()
                 .get_element_by_id("loadOnBottom")
                 .expect("Element id not found")
                 .scroll_height();
 
-            match scroll_y / f64::from(page_height) > 0.85 {
+            match scroll_y / f64::from(page_height) > 0.81 {
                 true => ImageMessage::ShowMore,
                 false => ImageMessage::No,
             }
