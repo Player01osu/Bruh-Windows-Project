@@ -1,5 +1,4 @@
-use web_sys::MouseEvent;
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, Html, Properties};
 
 pub struct Sidebar {
     visibility: SidebarVisibility,
@@ -13,6 +12,42 @@ pub enum SidebarMsg {
 pub enum SidebarVisibility {
     Show,
     Hidden,
+}
+
+#[derive(PartialEq, Properties)]
+pub struct LinkProps {
+    link: String,
+    text: String,
+}
+
+pub struct Links;
+
+impl Component for Links {
+    type Properties = LinkProps;
+    type Message = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let link = ctx.props().link.clone();
+        let text = ctx.props().text.clone();
+        html!{
+            <div class="indiv">
+                <div>
+                    <a href={format!("{}", link)}
+                        class="link"
+                        style="text-decoration: none;">{text}
+                    </a>
+                </div>
+            </div>
+        }
+    }
 }
 
 impl Component for Sidebar {
@@ -59,38 +94,11 @@ impl Component for Sidebar {
                             </div>
                         <center>
                             <div class="links">
-                                <div class="indiv">
-                                    <div>
-                                        <a href="layout2.html"
-                                            class="link"
-                                            style="text-decoration: none;">{"LAYOUT2"}
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="indiv">
-                                    <div>
-                                        <a href="tags.html"
-                                            class="link"
-                                            style="text-decoration: none;">{"TAGS"}
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="indiv">
-                                    <div>
-                                        <a href="layout2.html"
-                                            class="link"
-                                            style="text-decoration: none;">{"ABOUT"}
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="indiv">
-                                    <div>
-                                        <a href="about.html"
-                                            class="link"
-                                            style="text-decoration: none;">{"SAMPLE"}
-                                        </a>
-                                    </div>
-                                </div>
+                                <Links link="/" text="HOME"/>
+                                <Links link="gallery" text="GALLERY"/>
+                                <Links link="tags" text="TAGS"/>
+                                <Links link="about" text="ABOUT"/>
+                                <Links link="github" text="GITHUB"/>
                             </div>
                         </center>
                     </div>

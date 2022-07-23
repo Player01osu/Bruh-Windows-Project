@@ -235,11 +235,12 @@ impl Component for Posts {
                                 .header("Content-Type", "application/json")
                                 .body(&format!(
                                     r#"
-                            {{
-                                "title": "{}",
-                                "path": "{}"
-                            }}"#,
-                                    image.title, image.path
+                                    {{
+                                        "title": "{}",
+                                        "path": "{}"
+                                    }}"#,
+                                    image.title,
+                                    image.path
                                 ))
                                 .send()
                                 .await
@@ -254,11 +255,12 @@ impl Component for Posts {
                                 .header("Content-Type", "application/json")
                                 .body(&format!(
                                     r#"
-                            {{
-                                "title": "{}",
-                                "path": "{}"
-                            }}"#,
-                                    image.title, image.path
+                                    {{
+                                        "title": "{}",
+                                        "path": "{}"
+                                    }}"#,
+                                    image.title,
+                                    image.path
                                 ))
                                 .send()
                                 .await
