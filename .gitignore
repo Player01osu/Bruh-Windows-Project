@@ -38,8 +38,3 @@ frontend/dist
 
 frontend/dist
 target/wasm32-unknown-unknown/debug
-frontend/.temp
-frontend/assets/css/style.bak.css
-frontend/assets/css/style.cssbakb
-frontend/assets/imghomework
-frontend/assets/postshomework
