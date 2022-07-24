@@ -85,7 +85,7 @@ impl Component for StaticPages {
                 <body style="background-color: black;">
                     <Header/>
                     <Container/>
-                    <h2 style="position: relative; margin-top: 20px; margin-left: 80px;">{ "Welcome! to the Wholesome Yuri website" }</h2>
+                    <h2 style="position: relative; margin-top: 100px; margin-left: 200px;">{ "Welcome! to the Wholesome Yuri website" }</h2>
                 </body>
             </>
         }
