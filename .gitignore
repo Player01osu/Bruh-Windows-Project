@@ -1,4 +1,3 @@
-
 backend/target/debug/.fingerprint
 backend/target/debug/deps
 backend/target/debug/incremental
@@ -32,8 +31,9 @@ target/debug
 target/.rustc_info.json
 target/CACHEDIR.TAG
 target/**
+target
 
 markdown/assets/img/*
 
 frontend/dist
-target/wasm32-unknown-unknown/debug
+target/wasm32-unknown-unknown/debug/*
