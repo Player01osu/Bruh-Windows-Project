@@ -15,8 +15,8 @@ pub struct SortStruct {
 #[derive(Clone, PartialEq)]
 pub struct SortButtons {
     node_ref: NodeRef,
-    current_sort: String,
-    current_sort_display: String,
+    sort_current: String,
+    sort_current_display: String,
     sort_one: SortStruct,
     sort_two: SortStruct,
 }
@@ -41,8 +41,8 @@ impl Component for SortButtons {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            current_sort: String::new(),
-            current_sort_display: String::from("New"),
+            sort_current: String::new(),
+            sort_current_display: String::from("New"),
             node_ref: NodeRef::default(),
             sort_one: Default::default(),
             sort_two: Default::default(),
@@ -52,9 +52,9 @@ impl Component for SortButtons {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             SortButtonsMessage::CreateButtons => {
-                match self.current_sort.as_str() {
+                match self.sort_current.as_str() {
                     "/new" => {
-                        self.current_sort_display = "New".to_string();
+                        self.sort_current_display = "New".to_string();
                         self.sort_one.link = "/gallery/top".to_string();
                         self.sort_one.text = "Top".to_string();
 
@@ -62,7 +62,7 @@ impl Component for SortButtons {
                         self.sort_two.text = "Views".to_string();
                     }
                     "/top" => {
-                        self.current_sort_display = "Top".to_string();
+                        self.sort_current_display = "Top".to_string();
                         self.sort_one.link = "/gallery/views".to_string();
                         self.sort_one.text = "Views".to_string();
 
@@ -70,7 +70,7 @@ impl Component for SortButtons {
                         self.sort_two.text = "New".to_string();
                     }
                     "/views" => {
-                        self.current_sort_display = "Views".to_string();
+                        self.sort_current_display = "Views".to_string();
                         self.sort_one.link = "/gallery/new".to_string();
                         self.sort_one.text = "New".to_string();
 
@@ -78,7 +78,7 @@ impl Component for SortButtons {
                         self.sort_two.text = "Top".to_string();
                     }
                     _ => {
-                        self.current_sort_display = "New".to_string();
+                        self.sort_current_display = "New".to_string();
                         self.sort_one.link = "/gallery/top".to_string();
                         self.sort_one.text = "Top".to_string();
 
@@ -92,7 +92,7 @@ impl Component for SortButtons {
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        let current_sort_display = self.current_sort_display.clone();
+        let current_sort_display = self.sort_current_display.clone();
         let sort_one = self.sort_one.clone();
         let sort_two = self.sort_two.clone();
 
@@ -110,7 +110,7 @@ impl Component for SortButtons {
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        self.current_sort = self
+        self.sort_current = self
             .node_ref
             .cast::<Element>()
             .unwrap()
@@ -118,8 +118,8 @@ impl Component for SortButtons {
             .unwrap()
             .unwrap();
 
-        self.current_sort = self
-            .current_sort
+        self.sort_current = self
+            .sort_current
             .split_once("gallery")
             .unwrap()
             .1
