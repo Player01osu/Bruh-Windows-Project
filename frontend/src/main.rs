@@ -1,9 +1,13 @@
 mod components;
 mod gallery;
+mod about;
+mod tags;
 
 use components::header::Header;
 use components::container::Container;
+use about::About;
 use gallery::Gallery;
+use tags::Tags;
 use yew::{html, Component, Context, Html};
 use yew_router::{BrowserRouter, Switch, Routable};
 
@@ -38,8 +42,8 @@ pub fn switch(route: &Route) -> Html {
             <Switch<GalleryRoute> render={Switch::render(gallery_switch)} />
         },
         Route::Gallery => html!{ <Gallery sort="new"/> },
-        Route::About => todo!(),
-        Route::Tags => todo!(),
+        Route::About => html! { <About/> },
+        Route::Tags => html! { <Tags/> },
     }
 }
 
