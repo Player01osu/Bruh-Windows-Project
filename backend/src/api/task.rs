@@ -1,6 +1,6 @@
 use actix_web::http::StatusCode;
 use actix_web::web::JsonBody;
-use actix_web::{delete, get, post, web::Data, web::Json, web::Path};
+use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
 use actix_web::{HttpResponse, HttpResponseBuilder};
 
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use common::mongodb::structs::YuriPosts;
+use common::mongodb::structs::{YuriPosts, PostStats, Comment};
 use mongodb::{bson::doc, options::FindOptions};
 
 pub struct Gallery {
@@ -33,41 +33,60 @@ impl Gallery {
         generated
     }
 
-    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>) -> &mut Self {
+    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>, sort: String) -> &mut Self {
         // >query mongodb for 'yuriPosts'
-        // >find a mix of new posts and
-        // most viewed posts
-        // >limit to around 20 posts
-        // >return json of them
 
         let database = MongodbDatabase::new(database);
-        let filter = doc! { "author": "Player01" };
-        let find_options = FindOptions::builder()
-            .sort(doc! { "_id": i32::from(1) })
-            .build();
+        //let filter = doc! { "op": "Player01" };
 
-        let paths: Vec<Document> = database.find(filter, Some(find_options), self.amount).await;
+        let find_options = match sort.as_str() {
+            "new" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"time":-1})
+                .build(),
+            "top" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"stats.likes":-1})
+                .build(),
+            "views" => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"stats.views":-1})
+                .build(),
+            _ => FindOptions::builder()
+                .limit(i64::from(self.amount))
+                .sort( doc! {"time":-1})
+                .build()
+        };
 
-        if paths.is_empty() {
-            self.show = None;
-            return self;
+        let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
+
+        match paths.is_empty() {
+            true => {
+                self.show = None;
+                self
+            }
+            false => {
+                self.show = Some(Json(paths));
+                self
+            }
         }
-
-        self.show = Some(Json(paths));
-
-        self
     }
 }
 
-#[get("/gallery_display")]
-pub async fn gallery_display(
+#[get("/view-posts/{page_number}/{sort}")]
+pub async fn view_posts(
+    path: Path<(u16, String)>,
     database: Data<mongodb::Collection<YuriPosts>>,
 ) -> Json<Vec<Document>> {
-    let mut generated = Gallery::new(20);
-    generated.gen_gallery(database).await;
+    let (page_number, sort) = path.into_inner();
 
-    return generated.show.unwrap();
+    let mut generated = Gallery::new(page_number * 10);
+
+    generated.gen_gallery(database, sort).await;
+
+    generated.show.unwrap()
 }
+
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PostImageRequest {
@@ -84,6 +103,12 @@ pub struct DeleteImageRequest {
     title: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LikeImageRequest {
+    path: String,
+    title: String,
+}
+
 #[post("/post_image")]
 pub async fn post_image(
     database: Data<mongodb::Collection<YuriPosts>>,
@@ -97,12 +122,13 @@ pub async fn post_image(
 
     let docs = YuriPosts {
         title: request.title.clone(),
+        author: request.author.clone(),
         op: request.op.clone(),
         path,
         time: request.time.clone(),
-        author: request.author.clone(),
         tags: request.tags.clone(),
-        ..Default::default()
+        stats: PostStats::default(),
+        comments: None,
     };
 
     database
@@ -126,4 +152,42 @@ pub async fn delete_post(
         .expect("Handle this pweeze");
 
     HttpResponse::Ok().body("Deleted")
+}
+
+#[put("/like-post")]
+pub async fn like_post(
+        request: Json<LikeImageRequest>,
+        database: Data<mongodb::Collection<YuriPosts>>
+) -> HttpResponse {
+    let filter = doc! {
+        "title": format!("{}", &request.title),
+        "path": format!("{}", &request.path)
+    };
+    let add_like = doc! { "$inc": { "stats.likes": 1 } };
+
+    database
+        .update_one(filter, add_like, None)
+        .await
+        .expect("Failed to add like");
+
+    HttpResponse::Ok().body("HTTP/1.1 201 Updated")
+}
+
+#[put("/unlike-post")]
+pub async fn unlike_post(
+        request: Json<LikeImageRequest>,
+        database: Data<mongodb::Collection<YuriPosts>>
+) -> HttpResponse {
+    let filter = doc! {
+        "title": format!("{}", &request.title),
+        "path": format!("{}", &request.path)
+    };
+    let remove_like = doc! { "$inc": { "stats.likes": -1 } };
+
+    database
+        .update_one(filter, remove_like, None)
+        .await
+        .expect("Failed to remove like");
+
+    HttpResponse::Ok().body("HTTP/1.1 201 Updated")
 }

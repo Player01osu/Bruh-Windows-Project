@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct YuriPosts {
     pub title: String,
     pub author: String,
@@ -8,12 +9,12 @@ pub struct YuriPosts {
     pub tags: Option<Vec<String>>,
     pub path: String,
     pub comments: Option<Vec<Comment>>,
-    #[serde(rename = "postStats")]
-    pub post_stats: PostStats,
+    pub stats: PostStats,
     pub time: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Comment {
     pub commenter: String,
     pub body: String,
@@ -21,6 +22,7 @@ pub struct Comment {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PostStats {
     pub likes: u64,
     pub views: u64,
@@ -32,23 +34,23 @@ pub enum ImageExpandState {
     Focus,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-struct Id {
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct Id {
     #[serde(rename = "$oid")]
-    oid: String,
+    pub oid: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ImageRequest {
     #[serde(rename = "_id")]
-    _id: Id,
+    pub _id: Id,
     pub title: String,
     pub author: String,
     pub op: String,
     pub time: usize,
     pub tags: Option<Vec<String>>,
-    #[serde(rename = "postStats")]
-    pub post_stats: PostStats,
+    pub stats: PostStats,
     pub path: String,
     pub comments: Option<Vec<Comment>>,
 }
@@ -62,7 +64,7 @@ impl Default for YuriPosts {
             tags: None,
             path: "EMPTY".to_string(),
             comments: None,
-            post_stats: PostStats::default(),
+            stats: PostStats::default(),
             time: 0,
         }
     }
@@ -84,7 +86,8 @@ impl Default for Comment {
     }
 }
 
-pub enum ImageMessage {
-    ToggleExpando(usize),
-    QueryImages(Vec<ImageRequest>),
+pub enum Sort {
+    New,
+    Top,
+    Views,
 }

@@ -6,12 +6,17 @@ use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use routing::routes;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use api::task::{delete_post, gallery_display, post_image};
+use api::task::{
+    delete_post,
+    post_image,
+    view_posts,
+    like_post,
+    unlike_post,
+    };
 
-use api::mongo::{MongodbCollection, MongodbDatabase};
+use api::mongo::MongodbDatabase;
 use routes::*;
 
 fn main() -> anyhow::Result<()> {
@@ -51,10 +56,11 @@ pub async fn run() -> std::io::Result<()> {
             .service(actix_files::Files::new("/assets", "static/assets"))
             .service(
                 web::scope("/api")
-                    .service(actix_files::Files::new("/assets", "static/assets"))
-                    .service(gallery_display)
+                    .service(view_posts)
                     .service(post_image)
-                    .service(delete_post),
+                    .service(delete_post)
+                    .service(like_post)
+                    .service(unlike_post)
             )
             .default_service(web::route().to(router));
 
