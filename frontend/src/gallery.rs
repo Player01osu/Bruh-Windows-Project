@@ -43,7 +43,11 @@ impl Component for Gallery {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onwheel = ctx.link().callback(|wheel_event: WheelEvent| {
             // FIXME kinda inconsistent
-            let scroll_y = wheel_event.view().unwrap().scroll_y().unwrap();
+            let scroll_y = wheel_event
+                .view()
+                .unwrap()
+                .scroll_y()
+                .unwrap();
             let page_height = document()
                 .get_element_by_id("loadOnBottom")
                 .expect("Element id not found")
