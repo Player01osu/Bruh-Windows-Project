@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::Element;
@@ -8,8 +10,8 @@ use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStat
 
 #[derive(Clone, PartialEq)]
 pub struct SortStruct {
-    link: String,
-    text: String,
+    link: Rc<String>,
+    text: Rc<String>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -24,8 +26,8 @@ pub struct SortButtons {
 impl Default for SortStruct {
     fn default() -> Self {
         Self {
-            link: "/gallery/new".to_string(),
-            text: "New".to_string()
+            link: Rc::new("/gallery/new".to_string()),
+            text: Rc::new("New".to_string()),
         }
     }
 }
@@ -52,38 +54,79 @@ impl Component for SortButtons {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             SortButtonsMessage::CreateButtons => {
+                let lookup_buttons = [
+                    (Rc::new("New".to_string()), Rc::new("/gallery/new".to_string()), 0 as usize),
+                    (Rc::new("Top".to_string()), Rc::new("/gallery/top".to_string()), 1 as usize),
+                    (Rc::new("Views".to_string()), Rc::new("/gallery/views".to_string()), 2 as usize),
+                ];
                 match self.sort_current.as_str() {
                     "/new" => {
-                        self.sort_current_display = "New".to_string();
-                        self.sort_one.link = "/gallery/top".to_string();
-                        self.sort_one.text = "Top".to_string();
+                        let lookup_num = 0 as usize;
 
-                        self.sort_two.link = "/gallery/views".to_string();
-                        self.sort_two.text = "Views".to_string();
+                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
+                        self.sort_current_display = text.to_string();
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+
+                        self.sort_one.link = link.clone();
+                        self.sort_one.text = text.clone();
+
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
+
+                        self.sort_two.link = link.clone();
+                        self.sort_two.text = text.clone();
                     }
                     "/top" => {
-                        self.sort_current_display = "Top".to_string();
-                        self.sort_one.link = "/gallery/views".to_string();
-                        self.sort_one.text = "Views".to_string();
+                        let lookup_num = 1 as usize;
 
-                        self.sort_two.link = "/gallery/new".to_string();
-                        self.sort_two.text = "New".to_string();
+                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
+                        self.sort_current_display = text.to_string();
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+
+                        self.sort_one.link = link.clone();
+                        self.sort_one.text = text.clone();
+
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
+
+                        self.sort_two.link = link.clone();
+                        self.sort_two.text = text.clone();
                     }
                     "/views" => {
-                        self.sort_current_display = "Views".to_string();
-                        self.sort_one.link = "/gallery/new".to_string();
-                        self.sort_one.text = "New".to_string();
+                        let lookup_num = 2 as usize;
 
-                        self.sort_two.link = "/gallery/top".to_string();
-                        self.sort_two.text = "Top".to_string();
+                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
+                        self.sort_current_display = text.to_string();
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+
+                        self.sort_one.link = link.clone();
+                        self.sort_one.text = text.clone();
+
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
+
+                        self.sort_two.link = link.clone();
+                        self.sort_two.text = text.clone();
                     }
                     _ => {
-                        self.sort_current_display = "New".to_string();
-                        self.sort_one.link = "/gallery/top".to_string();
-                        self.sort_one.text = "Top".to_string();
+                        let lookup_num = 0 as usize;
 
-                        self.sort_two.link = "/gallery/views".to_string();
-                        self.sort_two.text = "Views".to_string();
+                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
+                        self.sort_current_display = text.to_string();
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+
+                        self.sort_one.link = link.clone();
+                        self.sort_one.text = text.clone();
+
+                        let lookup_buttons = lookup_buttons.clone();
+                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
+
+                        self.sort_two.link = link.clone();
+                        self.sort_two.text = text.clone();
                     }
                 }
                 true
@@ -101,8 +144,8 @@ impl Component for SortButtons {
                 <div class="sort-buttons" ref={self.node_ref.clone()}>
                     <button class="dropbtn">{current_sort_display}</button>
                     <div class="sort-button-content">
-                        <a href={sort_one.link}>{sort_one.text}</a>
-                        <a href={sort_two.link}>{sort_two.text}</a>
+                        <a href={sort_one.link.to_string()}>{sort_one.text}</a>
+                        <a href={sort_two.link.to_string()}>{sort_two.text}</a>
                     </div>
                 </div>
             </>
