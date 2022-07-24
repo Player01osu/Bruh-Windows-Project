@@ -5,6 +5,31 @@ use yew::{html, Component, Context, Html, Properties};
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
+pub struct SortButtons;
+
+impl Component for SortButtons {
+    type Properties = ();
+    type Message = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <>
+                <div class="sort-buttons">
+
+                </div>
+            </>
+        }
+    }
+}
+
 
 pub enum ImageMessage {
     ToggleExpando(usize),
