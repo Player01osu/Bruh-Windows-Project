@@ -1,6 +1,5 @@
 mod components;
 mod gallery;
-mod console_log;
 
 use components::header::Header;
 use components::container::Container;
