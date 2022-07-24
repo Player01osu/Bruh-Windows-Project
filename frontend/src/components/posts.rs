@@ -1,31 +1,132 @@
 use reqwasm::http::Request;
 use serde::Deserialize;
+use web_sys::Element;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{html, Component, Context, Html, Properties, NodeRef};
 
 use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
 
-pub struct SortButtons;
+#[derive(Clone, PartialEq)]
+pub struct SortStruct {
+    link: String,
+    text: String,
+}
 
+#[derive(Clone, PartialEq)]
+pub struct SortButtons {
+    node_ref: NodeRef,
+    current_sort: String,
+    current_sort_display: String,
+    sort_one: SortStruct,
+    sort_two: SortStruct,
+}
+
+impl Default for SortStruct {
+    fn default() -> Self {
+        Self {
+            link: "/gallery/new".to_string(),
+            text: "New".to_string()
+        }
+    }
+}
+
+pub enum SortButtonsMessage {
+    CreateButtons,
+}
+
+// FIXME: This is bad
 impl Component for SortButtons {
     type Properties = ();
-    type Message = ();
+    type Message = SortButtonsMessage;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self
+        Self {
+            current_sort: String::new(),
+            current_sort_display: String::from("New"),
+            node_ref: NodeRef::default(),
+            sort_one: Default::default(),
+            sort_two: Default::default(),
+        }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        true
+        match msg {
+            SortButtonsMessage::CreateButtons => {
+                match self.current_sort.as_str() {
+                    "/new" => {
+                        self.current_sort_display = "New".to_string();
+                        self.sort_one.link = "/gallery/top".to_string();
+                        self.sort_one.text = "Top".to_string();
+
+                        self.sort_two.link = "/gallery/views".to_string();
+                        self.sort_two.text = "Views".to_string();
+                    }
+                    "/top" => {
+                        self.current_sort_display = "Top".to_string();
+                        self.sort_one.link = "/gallery/views".to_string();
+                        self.sort_one.text = "Views".to_string();
+
+                        self.sort_two.link = "/gallery/new".to_string();
+                        self.sort_two.text = "New".to_string();
+                    }
+                    "/views" => {
+                        self.current_sort_display = "Views".to_string();
+                        self.sort_one.link = "/gallery/new".to_string();
+                        self.sort_one.text = "New".to_string();
+
+                        self.sort_two.link = "/gallery/top".to_string();
+                        self.sort_two.text = "Top".to_string();
+                    }
+                    _ => {
+                        self.current_sort_display = "New".to_string();
+                        self.sort_one.link = "/gallery/top".to_string();
+                        self.sort_one.text = "Top".to_string();
+
+                        self.sort_two.link = "/gallery/views".to_string();
+                        self.sort_two.text = "Views".to_string();
+                    }
+                }
+                true
+            }
+        }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        let current_sort_display = self.current_sort_display.clone();
+        let sort_one = self.sort_one.clone();
+        let sort_two = self.sort_two.clone();
+
         html! {
             <>
-                <div class="sort-buttons">
-
+                <div class="sort-buttons" ref={self.node_ref.clone()}>
+                    <button class="dropbtn">{current_sort_display}</button>
+                    <div class="sort-button-content">
+                        <a href={sort_one.link}>{sort_one.text}</a>
+                        <a href={sort_two.link}>{sort_two.text}</a>
+                    </div>
                 </div>
             </>
+        }
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+        self.current_sort = self
+            .node_ref
+            .cast::<Element>()
+            .unwrap()
+            .base_uri()
+            .unwrap()
+            .unwrap();
+
+        self.current_sort = self
+            .current_sort
+            .split_once("gallery")
+            .unwrap()
+            .1
+            .to_string();
+        match self.sort_one.eq(&self.sort_two) {
+            true => ctx.link().send_message(SortButtonsMessage::CreateButtons),
+            false => (),
         }
     }
 }
@@ -299,6 +400,7 @@ impl Component for Posts {
 
         html! {
             <>
+                <SortButtons/>
                 <div class={ "images" }>
                     { posts }
                 </div>
@@ -307,7 +409,6 @@ impl Component for Posts {
     }
 
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        //console_log!("{}, {}", ctx.props().wheel_position, ctx.props().document_height);
         match ctx.props().wheel_position / ctx.props().document_height > 0.8 {
             true => {
                 ctx.link().send_message(ImageMessage::ShowMore);

@@ -273,3 +273,40 @@
 .heart,.comments {
     opacity: .7;
 }
+
+.dropbtn {
+  background-color: #c061cb;
+  color: 9a9996;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
+
+.sort-buttons {
+  position: absolute;
+  display: inline-block;
+  margin-left: 1300px;
+  margin-top: -20px;
+}
+
+.sort-button-content {
+  display: none;
+  position: absolute;
+  background-color: #77767b;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.sort-button-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.sort-button-content a:hover {background-color: #ddd;}
+
+.sort-buttons:hover .sort-button-content {display: block;}
+
+.sort-buttons:hover .dropbtn {background-color: #dc8add;}
