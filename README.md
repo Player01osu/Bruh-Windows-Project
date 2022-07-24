@@ -14,7 +14,7 @@ Built using actix framework and yew framework
 ## Testing
 
 ```sh
-$ cargo build
+$ cargo build --bin backend
 
 $ ./link.sh
 
