@@ -354,11 +354,9 @@ impl Component for Posts {
                                 .body(&format!(
                                     r#"
                                     {{
-                                        "title": "{}",
-                                        "path": "{}"
+                                        "oid": "{}"
                                     }}"#,
-                                    image.title,
-                                    image.path
+                                    image.oid
                                 ))
                                 .send()
                                 .await
@@ -374,11 +372,9 @@ impl Component for Posts {
                                 .body(&format!(
                                     r#"
                                     {{
-                                        "title": "{}",
-                                        "path": "{}"
+                                        "oid": "{}"
                                     }}"#,
-                                    image.title,
-                                    image.path
+                                    image.oid
                                 ))
                                 .send()
                                 .await

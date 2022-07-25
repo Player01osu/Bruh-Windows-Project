@@ -1,21 +1,19 @@
 use actix_web::http::StatusCode;
-use actix_web::web::JsonBody;
 use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
 use actix_web::{HttpResponse, HttpResponseBuilder};
-
+use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-
 use mongodb::bson::Document;
+use mongodb::{bson::doc, options::FindOptions};
 
-use super::mongo::{self, MongodbCollection, MongodbDatabase};
+use common::mongodb::structs::{YuriPosts, PostStats, Comment};
+use super::mongo::{MongodbDatabase};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use common::mongodb::structs::{YuriPosts, PostStats, Comment};
-use mongodb::{bson::doc, options::FindOptions};
 
 pub struct Gallery {
     show: Option<Json<Vec<Document>>>,
@@ -105,8 +103,7 @@ pub struct DeleteImageRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LikeImageRequest {
-    path: String,
-    title: String,
+    oid: String,
 }
 
 #[post("/post_image")]
@@ -154,14 +151,15 @@ pub async fn delete_post(
     HttpResponse::Ok().body("Deleted")
 }
 
+
 #[put("/like-post")]
 pub async fn like_post(
         request: Json<LikeImageRequest>,
         database: Data<mongodb::Collection<YuriPosts>>
 ) -> HttpResponse {
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
-        "title": format!("{}", &request.title),
-        "path": format!("{}", &request.path)
+        "_id": oid,
     };
     let add_like = doc! { "$inc": { "stats.likes": 1 } };
 
@@ -178,9 +176,9 @@ pub async fn unlike_post(
         request: Json<LikeImageRequest>,
         database: Data<mongodb::Collection<YuriPosts>>
 ) -> HttpResponse {
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
-        "title": format!("{}", &request.title),
-        "path": format!("{}", &request.path)
+        "_id": oid,
     };
     let remove_like = doc! { "$inc": { "stats.likes": -1 } };
 
