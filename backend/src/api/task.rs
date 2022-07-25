@@ -32,10 +32,8 @@ impl Gallery {
     }
 
     async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>, sort: String) -> &mut Self {
-        // >query mongodb for 'yuriPosts'
 
         let database = MongodbDatabase::new(database);
-        //let filter = doc! { "op": "Player01" };
 
         let find_options = match sort.as_str() {
             "new" => FindOptions::builder()
@@ -44,11 +42,11 @@ impl Gallery {
                 .build(),
             "top" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"stats.likes":-1})
+                .sort( doc! {"stats.likes":-1, "time":-1})
                 .build(),
             "views" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"stats.views":-1})
+                .sort( doc! {"stats.views":-1, "time":-1})
                 .build(),
             _ => FindOptions::builder()
                 .limit(i64::from(self.amount))
