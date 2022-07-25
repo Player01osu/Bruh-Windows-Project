@@ -95,10 +95,10 @@ impl Component for Sidebar {
                         <center>
                             <div class="links">
                                 <Links link="/" text="HOME"/>
-                                <Links link="gallery" text="GALLERY"/>
-                                <Links link="tags" text="TAGS"/>
-                                <Links link="about" text="ABOUT"/>
-                                <Links link="github" text="GITHUB"/>
+                                <Links link="/gallery" text="GALLERY"/>
+                                <Links link="/tags" text="TAGS"/>
+                                <Links link="/about" text="ABOUT"/>
+                                <Links link="/github" text="GITHUB"/>
                             </div>
                         </center>
                     </div>
