@@ -36,6 +36,30 @@ pub enum SortButtonsMessage {
     CreateButtons,
 }
 
+impl SortButtons {
+    fn populate_buttons(&mut self, lookup_num: usize) {
+        let lookup_buttons = [
+            (Rc::new("New".to_string()), Rc::new("/gallery/new".to_string())),
+            (Rc::new("Top".to_string()), Rc::new("/gallery/top".to_string())),
+            (Rc::new("Views".to_string()), Rc::new("/gallery/views".to_string())),
+        ];
+
+        let (text, _) = lookup_buttons.get(lookup_num).unwrap();
+        self.sort_current_display = text.to_string();
+        let lookup_buttons = lookup_buttons.clone();
+        let (text, link) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+
+        self.sort_one.link = link.clone();
+        self.sort_one.text = text.clone();
+
+        let lookup_buttons = lookup_buttons.clone();
+        let (text, link) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
+
+        self.sort_two.link = link.clone();
+        self.sort_two.text = text.clone();
+    }
+}
+
 // FIXME: This is bad
 impl Component for SortButtons {
     type Properties = ();
@@ -54,79 +78,18 @@ impl Component for SortButtons {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             SortButtonsMessage::CreateButtons => {
-                let lookup_buttons = [
-                    (Rc::new("New".to_string()), Rc::new("/gallery/new".to_string()), 0 as usize),
-                    (Rc::new("Top".to_string()), Rc::new("/gallery/top".to_string()), 1 as usize),
-                    (Rc::new("Views".to_string()), Rc::new("/gallery/views".to_string()), 2 as usize),
-                ];
                 match self.sort_current.as_str() {
                     "/new" => {
-                        let lookup_num = 0 as usize;
-
-                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
-                        self.sort_current_display = text.to_string();
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
-
-                        self.sort_one.link = link.clone();
-                        self.sort_one.text = text.clone();
-
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-                        self.sort_two.link = link.clone();
-                        self.sort_two.text = text.clone();
+                        self.populate_buttons(0 as usize);
                     }
                     "/top" => {
-                        let lookup_num = 1 as usize;
-
-                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
-                        self.sort_current_display = text.to_string();
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
-
-                        self.sort_one.link = link.clone();
-                        self.sort_one.text = text.clone();
-
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-                        self.sort_two.link = link.clone();
-                        self.sort_two.text = text.clone();
+                        self.populate_buttons(1 as usize);
                     }
                     "/views" => {
-                        let lookup_num = 2 as usize;
-
-                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
-                        self.sort_current_display = text.to_string();
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
-
-                        self.sort_one.link = link.clone();
-                        self.sort_one.text = text.clone();
-
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-                        self.sort_two.link = link.clone();
-                        self.sort_two.text = text.clone();
+                        self.populate_buttons(2 as usize);
                     }
                     _ => {
-                        let lookup_num = 0 as usize;
-
-                        let (text, _, _) = lookup_buttons.get(lookup_num).unwrap();
-                        self.sort_current_display = text.to_string();
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
-
-                        self.sort_one.link = link.clone();
-                        self.sort_one.text = text.clone();
-
-                        let lookup_buttons = lookup_buttons.clone();
-                        let (text, link, _) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-                        self.sort_two.link = link.clone();
-                        self.sort_two.text = text.clone();
+                        self.populate_buttons(0 as usize);
                     }
                 }
                 true
