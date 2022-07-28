@@ -80,7 +80,8 @@ pub async fn view_posts(
 
     generated.gen_gallery(database, sort).await;
 
-    generated.show.unwrap()
+    // FIXME: Kinda need this to NOT panic when empty.
+    generated.show.expect("Empty gallery")
 }
 
 
