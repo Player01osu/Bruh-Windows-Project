@@ -54,7 +54,19 @@ prompt () {
 }
 prompt "File name"
 
-FORMATED="{\"title\":\"$TITLE\",\"author\":\"$AUTHOR\",\"op\":\"$OP\",\"tags\":[$TAGS],\"time\":$TIME,\"file_name\":\"$FILENAME\"}"
+echo "Enter material the image is from: "
+read -r MATERIAL
+
+echo "Enter link to source: "
+read -r LINK
+
+echo "Enter width of image: "
+read -r WIDTH
+
+echo "Enter height of image: "
+read -r HEIGHT
+
+FORMATED="{\"title\":\"$TITLE\",\"author\":\"$AUTHOR\",\"op\":\"$OP\",\"tags\":[$TAGS],\"time\":$TIME,\"file_name\":\"$FILENAME\",\"source\":{\"material\":\"$MATERIAL\",\"link\":\"$LINK\"},\"resolution\":{\"width\":$WIDTH,\"height\":$HEIGHT}}"
 
 echo $TITLE $AUTHOR $OP $TIME $TAGS $FILENAME
 echo $FORMATED
@@ -70,16 +82,29 @@ prompt () {
 	printf "\n\n\033[1;34mMove image into posts directory? [Y/n]: \033[0m"
 	read -r MOVEPOST
 }
+prompt
+
+prompt () {
+	printf "\n\n\033[1;34mInput path the image is located (ie: ~/Pictures/stuffs/test-image.jpg OR ../other/directory): \033[0m"
+	read -r IMAGEPATH
+}
 
 case $MOVEPOST in
 	"n")
-	"N") return;;
+	return
+	;;
+	"N")
+	return
+	;;
 	"y")
+	prompt
+	;;
 	"Y")
+	prompt
+	;;
 	"")
-		printf "\n\n\033[1;34mInput path the image is located (ie: ~/Pictures/stuffs/test-image.jpg OR ../other/directory): \033[0m"
-		read -r IMAGEPATH
-		;;
+	prompt
+	;;
 esac
 
 if [ -z $IMAGEPATH || -f $IMAGEPATH]; then
