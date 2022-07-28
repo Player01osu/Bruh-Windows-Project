@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+// FIXME: Not all of these have to be pub (I think).
+// Find all unnecessary uses of pub
 
 // TODO: Reference counted to avoid large amounts of cloning?
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
@@ -67,7 +69,7 @@ pub struct ImageRequest {
     pub tags: Option<Vec<String>>,
     pub stats: PostStats,
     pub path: String,
-    pub source: String,
+    pub source: Source,
     pub resolution: Resolution,
     pub comments: Option<Vec<Comment>>,
 }
@@ -102,14 +104,17 @@ impl Default for Source {
     fn default() -> Self {
         Self {
             material: "None".to_string(),
-            link: None
+            link: None,
         }
     }
 }
 
 impl Default for PostStats {
     fn default() -> Self {
-        Self { likes: 0, views: 0 }
+        Self {
+            likes: 0,
+            views: 0,
+        }
     }
 }
 
