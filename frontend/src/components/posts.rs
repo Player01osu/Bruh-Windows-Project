@@ -6,7 +6,7 @@ use web_sys::Element;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, Properties, NodeRef};
 
-use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort};
+use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort, Source, Resolution};
 
 #[derive(Clone, PartialEq)]
 pub struct SortStruct {
@@ -151,6 +151,7 @@ pub struct PostProps {
     pub sort: String,
     pub document_height: f64,
     pub wheel_position: f64,
+    pub gallery_node_ref: NodeRef,
 }
 
 #[derive(Clone, PartialEq, Deserialize, Debug)]
@@ -163,9 +164,11 @@ pub struct Image {
     pub path: String,
     pub stats: PostStats,
     pub comments: Option<Vec<Comment>>,
+    pub source: Source,
+    pub resolution: Resolution,
     pub time: usize,
     pub tags: Option<Vec<String>>,
-    pub class: String,
+    pub style: String,
     pub heart_state: ImageLiked,
     pub heart_class: String,
 }
@@ -184,14 +187,20 @@ pub enum ImageLiked {
 }
 
 impl Image {
-    pub fn toggle_expand(&mut self) {
+    pub fn toggle_expand(&mut self, avail_width: i32) {
         match &self.state {
             ImageExpandState::Unfocus => {
-                self.class = "yuri-img-clicked".to_string();
+                let avail_width = avail_width as f32 * 0.71;
+
+                let margin_left = match self.resolution.width > 510 {
+                    true => -20,
+                    false => 0,
+                };
+                self.style = format!("max-width: {}px; width: auto; margin-left: {}%", avail_width, margin_left);
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.class = "yuri-img".to_string();
+                self.style = String::new();
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -229,8 +238,8 @@ impl Posts {
                 </div>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!(".{}", image.path)}
-                    class={format!("{}", image.class)}
-                    //style={format!("max-width: {}px;", image.width)}
+                    class={"yuri-img"}
+                    style={format!("{}", image.style)}
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
                     />
@@ -256,7 +265,6 @@ impl Component for Posts {
         let sort = ctx.props().sort.clone();
         let new_image_vec: Vec<Image> = Vec::new();
         ctx.link().send_future(async move {
-            // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
             let fetched_images: Vec<ImageRequest> = Request::get(format!{"/api/view-posts/1/{}", sort.clone()}.as_str())
                 .send()
                 .await
@@ -286,8 +294,9 @@ impl Component for Posts {
         match msg {
             ImageMessage::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
+                let avail_width = ctx.props().gallery_node_ref.cast::<Element>().unwrap().client_width();
 
-                image.toggle_expand();
+                image.toggle_expand(avail_width);
                 true
             },
             ImageMessage::QueryImages(fetched_images) => {
@@ -298,12 +307,14 @@ impl Component for Posts {
                         title: image.title,
                         author: image.author,
                         op: image.op,
+                        source: image.source,
+                        resolution: image.resolution,
                         path: image.path,
                         stats: image.stats,
                         time: image.time,
                         tags: image.tags,
                         comments: image.comments,
-                        class: "yuri-img".to_string(),
+                        style: String::new(),
                         heart_state: ImageLiked::Unliked,
                         heart_class: "heart".to_string(),
                     })

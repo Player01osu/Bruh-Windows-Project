@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use mongodb::bson::Document;
 use mongodb::{bson::doc, options::FindOptions};
 
-use common::mongodb::structs::{YuriPosts, PostStats, Comment};
+use common::mongodb::structs::{YuriPosts, PostStats, Comment, Resolution, Source};
 use super::mongo::{MongodbDatabase};
 
 #[derive(Deserialize, Serialize)]
@@ -17,7 +17,7 @@ pub struct TaskIndentifier {
 
 pub struct Gallery {
     show: Option<Json<Vec<Document>>>,
-    search_filters: Option<String>,
+    search_filters: Option<Vec<String>>,
     amount: u16,
 }
 
@@ -80,7 +80,8 @@ pub async fn view_posts(
 
     generated.gen_gallery(database, sort).await;
 
-    generated.show.unwrap()
+    // FIXME: Kinda need this to NOT panic when empty.
+    generated.show.expect("Empty gallery")
 }
 
 
@@ -89,6 +90,8 @@ pub struct PostImageRequest {
     title: String,
     author: String,
     op: String,
+    source: Source,
+    resolution: Resolution,
     time: u64,
     tags: Option<Vec<String>>,
     file_name: String,
@@ -115,11 +118,14 @@ pub async fn post_image(
     );
     let database: mongodb::Collection<YuriPosts> = database.clone_with_type();
 
+    // TODO: Reference counted?
     let docs = YuriPosts {
         title: request.title.clone(),
         author: request.author.clone(),
         op: request.op.clone(),
         path,
+        source: request.source.clone(),
+        resolution: request.resolution.clone(),
         time: request.time.clone(),
         tags: request.tags.clone(),
         stats: PostStats::default(),
@@ -155,6 +161,7 @@ pub async fn like_post(
         request: Json<LikeImageRequest>,
         database: Data<mongodb::Collection<YuriPosts>>
 ) -> HttpResponse {
+    // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
         "_id": oid,
@@ -174,6 +181,7 @@ pub async fn unlike_post(
         request: Json<LikeImageRequest>,
         database: Data<mongodb::Collection<YuriPosts>>
 ) -> HttpResponse {
+    // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
         "_id": oid,

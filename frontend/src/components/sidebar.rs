@@ -98,7 +98,7 @@ impl Component for Sidebar {
                                 <Links link="/gallery" text="GALLERY"/>
                                 <Links link="/tags" text="TAGS"/>
                                 <Links link="/about" text="ABOUT"/>
-                                <Links link="/github" text="GITHUB"/>
+                                <Links link="https://github.com/player01osu/yuri-web" text="GITHUB"/>
                             </div>
                         </center>
                     </div>
