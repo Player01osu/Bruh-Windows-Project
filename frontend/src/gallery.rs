@@ -1,13 +1,16 @@
+use std::rc::Rc;
+
 use super::components::posts::Posts;
 use super::components::container::Container;
 use super::components::header::Header;
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{html, Component, Context, Html, Properties, NodeRef};
 
 pub struct Gallery {
     document_height: f64,
     wheel_position: f64,
+    node_ref: NodeRef,
 }
 
 #[derive(Properties, PartialEq)]
@@ -27,6 +30,7 @@ impl Component for Gallery {
         Self {
             document_height: 0.0,
             wheel_position: 0.0,
+            node_ref: NodeRef::default(),
         }
     }
 
@@ -57,7 +61,8 @@ impl Component for Gallery {
         let show_posts = html! {
             <Posts sort={ctx.props().sort.clone()}
                 document_height={self.document_height}
-                wheel_position={self.wheel_position}/>
+                wheel_position={self.wheel_position}
+                gallery_node_ref={self.node_ref.clone()}/>
         };
 
         html! {
@@ -66,7 +71,7 @@ impl Component for Gallery {
                 <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
                 <body style="background-color: black;">
                     <Header/>
-                    <div id="loadOnBottom" { onwheel }>
+                    <div id="loadOnBottom" ref={ self.node_ref.clone() }{ onwheel }>
                         <Container/>
                         { show_posts }
                     </div>
