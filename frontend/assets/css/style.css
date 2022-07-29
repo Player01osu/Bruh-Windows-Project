@@ -145,9 +145,11 @@
 }
 
 .yuri-img-clicked {
-  margin-left: -270px;
-  margin-right: auto;
-
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+  /* margin-left: -270px;
+  margin-right: auto; */
   /*max-width: 99.9%;*/
   max-width: 1200px;
   width: 1200px;
@@ -275,38 +277,43 @@
 }
 
 .dropbtn {
-  background-color: #c061cb;
+  background-color: #c054c2;
+  opacity: 0.5;
   color: 9a9996;
-  padding: 16px;
-  font-size: 16px;
+  width: 90px;
+  
+  font-size: 15px;
   border: none;
 }
 
 .sort-buttons {
-  position: absolute;
-  display: inline-block;
-  margin-left: 1300px;
-  margin-top: -20px;
+  position: fixed;
+  
+  right:0px
+  /* transform: translateX(-30% ); */
+  /* display: inline-block; */
+  /* margin-left: 1300px;
+  margin-top: -20px; */
 }
 
 .sort-button-content {
-  display: none;
-  position: absolute;
-  background-color: #77767b;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+    display:none;
+    background-color: #77767b;
+    min-width: 90px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
 }
 
 .sort-button-content a {
   color: black;
-  padding: 12px 16px;
+  /* padding: 12px 16px; */
   text-decoration: none;
   display: block;
 }
+
 
 .sort-button-content a:hover {background-color: #ddd;}
 
 .sort-buttons:hover .sort-button-content {display: block;}
 
-.sort-buttons:hover .dropbtn {background-color: #dc8add;}
+.sort-buttons:hover .dropbtn {border: 2px solid #dc8add;}
