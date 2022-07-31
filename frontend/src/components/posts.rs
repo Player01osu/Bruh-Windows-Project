@@ -168,7 +168,7 @@ pub struct Image {
     pub resolution: Resolution,
     pub time: usize,
     pub tags: Option<Vec<String>>,
-    pub style: String,
+    pub class: String,
     pub heart_state: ImageLiked,
     pub heart_class: String,
 }
@@ -196,11 +196,11 @@ impl Image {
                     true => -20,
                     false => 0,
                 };
-                self.style = format!("max-width: {}px; width: auto; margin-left: {}%", avail_width, margin_left);
+                self.class = format!("yuri-img-class");
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.style = String::new();
+                self.class = String::new();
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -238,8 +238,7 @@ impl Posts {
                 </div>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!(".{}", image.path)}
-                    class={"yuri-img"}
-                    style={format!("{}", image.style)}
+                    class={format!("{}", image.class)}
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
                     />
@@ -314,7 +313,7 @@ impl Component for Posts {
                         time: image.time,
                         tags: image.tags,
                         comments: image.comments,
-                        style: String::new(),
+                        class: String::new(),
                         heart_state: ImageLiked::Unliked,
                         heart_class: "heart".to_string(),
                     })
