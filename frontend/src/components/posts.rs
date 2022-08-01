@@ -143,7 +143,7 @@ pub enum ImageMessage {
     QueryImages(Vec<ImageRequest>),
     ShowMore,
     Like(usize),
-    No,
+    None,
 }
 
 #[derive(PartialEq, Properties)]
@@ -372,7 +372,7 @@ impl Component for Posts {
                                 .send()
                                 .await
                                 .expect("Failed to send put request (/api/like-post/)");
-                            ImageMessage::No
+                            ImageMessage::None
                         })
                     }
                     false => {
@@ -390,13 +390,13 @@ impl Component for Posts {
                                 .send()
                                 .await
                                 .expect("Failed to send put request (/api/unlike-post/)");
-                            ImageMessage::No
+                            ImageMessage::None
                         })
                     }
                 };
                 true
             },
-            ImageMessage::No => false,
+            ImageMessage::None => false,
         }
     }
     fn view(&self, ctx: &Context<Self>) -> Html {
