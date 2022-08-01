@@ -196,11 +196,11 @@ impl Image {
                     true => -20,
                     false => 0,
                 };
-                self.class = format!("yuri-img-class");
+                self.class = format!("yuri-img-clicked");
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.class = String::new();
+                self.class = format!("yuri-img");
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -313,7 +313,7 @@ impl Component for Posts {
                         time: image.time,
                         tags: image.tags,
                         comments: image.comments,
-                        class: String::new(),
+                        class: "yuri-img".to_string(),
                         heart_state: ImageLiked::Unliked,
                         heart_class: "heart".to_string(),
                     })
