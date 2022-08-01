@@ -14,7 +14,7 @@ use api::task::{
     view_posts,
     like_post,
     unlike_post,
-    };
+};
 
 use api::mongo::MongodbDatabase;
 use routes::*;
