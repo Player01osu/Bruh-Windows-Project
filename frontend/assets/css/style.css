@@ -310,3 +310,9 @@
 .sort-buttons:hover .sort-button-content {display: block;}
 
 .sort-buttons:hover .dropbtn {background-color: #dc8add;}
+
+/* temp values */
+.upload {
+	margin-left: 1220px;
+	margin-top: -170px;
+}

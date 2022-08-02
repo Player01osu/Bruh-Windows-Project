@@ -1,19 +1,23 @@
+use actix_multipart::Multipart;
 use actix_web::http::StatusCode;
 use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
-use actix_web::{HttpResponse, HttpResponseBuilder};
+use actix_web::{web, Error, HttpResponse, HttpResponseBuilder, Responder};
 use bson::oid::ObjectId;
-use serde::{Deserialize, Serialize};
+use futures_util::TryStreamExt as _;
+use image::io::Reader;
 use mongodb::bson::Document;
 use mongodb::{bson::doc, options::FindOptions};
+use serde::{Deserialize, Serialize};
+use std::io::Write;
+use uuid::Uuid;
 
-use common::mongodb::structs::{YuriPosts, PostStats, Comment, Resolution, Source};
-use super::mongo::{MongodbDatabase};
+use super::mongo::MongodbDatabase;
+use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskIndentifier {
     task_global_id: String,
 }
-
 
 pub struct Gallery {
     show: Option<Json<Vec<Document>>>,
@@ -31,27 +35,30 @@ impl Gallery {
         generated
     }
 
-    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>, sort: String) -> &mut Self {
-
+    async fn gen_gallery(
+        &mut self,
+        database: Data<mongodb::Collection<YuriPosts>>,
+        sort: String,
+    ) -> &mut Self {
         let database = MongodbDatabase::new(database);
 
         let find_options = match sort.as_str() {
             "new" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"time":-1})
+                .sort(doc! {"time":-1})
                 .build(),
             "top" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"stats.likes":-1, "time":-1})
+                .sort(doc! {"stats.likes":-1, "time":-1})
                 .build(),
             "views" => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"stats.views":-1, "time":-1})
+                .sort(doc! {"stats.views":-1, "time":-1})
                 .build(),
             _ => FindOptions::builder()
                 .limit(i64::from(self.amount))
-                .sort( doc! {"time":-1})
-                .build()
+                .sort(doc! {"time":-1})
+                .build(),
         };
 
         let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
@@ -84,7 +91,6 @@ pub async fn view_posts(
     generated.show.expect("Empty gallery")
 }
 
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PostImageRequest {
     title: String,
@@ -99,7 +105,7 @@ pub struct PostImageRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DeleteImageRequest {
-    title: String,
+    oid: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -110,34 +116,137 @@ pub struct LikeImageRequest {
 #[post("/post_image")]
 pub async fn post_image(
     database: Data<mongodb::Collection<YuriPosts>>,
-    request: Json<PostImageRequest>,
-) -> HttpResponse {
-    let path = format!(
-        "./assets/posts/{}-{}-{}",
-        &request.author, &request.time, &request.file_name
-    );
+    mut payload: Multipart,
+) -> actix_web::Result<impl Responder> {
     let database: mongodb::Collection<YuriPosts> = database.clone_with_type();
+    let utc_now = chrono::Utc::now();
+    let time = utc_now.timestamp() as u64;
 
+    // FIXME: This is probably not good
+    let mut title = String::new();
+    let mut author = String::new();
+    let mut op = String::default();
+    let mut material = String::new();
+    let mut link: Option<String> = None;
+    let mut width: usize = 480;
+    let mut height: usize = 640;
+    let mut tags: Option<Vec<String>> = None;
+    let mut filename = String::default();
+    let mut path = String::default();
+
+    while let Some(mut field) = payload.try_next().await? {
+        match field.name() {
+            "title" => {
+                if let Some(chunk) = field.try_next().await? {
+                    title = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "author" => {
+                if let Some(chunk) = field.try_next().await? {
+                    author = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "op" => {
+                if let Some(chunk) = field.try_next().await? {
+                    let chunk_to_str = std::str::from_utf8(&chunk)?; // FIXME: Doesn't default
+                                                                     // empty
+                    op = match chunk_to_str.is_empty() {
+                        true => String::from("an"),
+                        false => String::from(chunk_to_str),
+                    };
+                }
+            }
+            "material" => {
+                if let Some(chunk) = field.try_next().await? {
+                    material = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "link" => {
+                if let Some(chunk) = field.try_next().await? {
+                    let chunk_to_str = std::str::from_utf8(&chunk)?;
+                    link = match chunk_to_str.is_empty() {
+                        true => None,
+                        false => Some(String::from(chunk_to_str)),
+                    };
+                }
+            }
+            "tags" => {
+                if let Some(chunk) = field.try_next().await? {
+                    let chunk_to_str = std::str::from_utf8(&chunk)?;
+                    tags = match chunk_to_str.is_empty() {
+                        true => None,
+                        false => Some(
+                            String::from(chunk_to_str)
+                                .split_terminator(',')
+                                .map(|s| String::from(s.trim()))
+                                .collect::<Vec<String>>(),
+                        ),
+                    };
+                }
+            }
+            "filename" => {
+                if let Some(chunk) = field.try_next().await? {
+                    filename = std::str::from_utf8(&chunk)?.to_owned();
+                    filename = sanitize_filename::sanitize(filename);
+                }
+            }
+            "image" => {
+                // A multipart/form-data stream has to contain `content_disposition`
+                let filepath = format!("./assets/posts/{author}-{time}-{filename}");
+                path = filepath.clone();
+                let mut raw_data: Vec<u8> = Vec::default();
+
+                let mut f = web::block(|| std::fs::File::create(filepath)).await??;
+
+                while let Some(chunk) = field.try_next().await? {
+                    raw_data.extend(chunk.iter().clone()); // FIXME: This is bad... I think?
+                    f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
+                }
+                let dimensions = web::block(move || {
+                    Reader::new(std::io::Cursor::new(raw_data))
+                        .with_guessed_format()
+                        .unwrap()
+                        .into_dimensions()
+                })
+                .await?
+                .unwrap();
+                width = dimensions.0 as usize;
+                height = dimensions.1 as usize;
+            }
+            _ => (),
+        }
+    }
+
+    let resolution = Resolution { width, height };
+
+    let stats = PostStats { likes: 0, views: 0 };
+
+    let source = Source { material, link };
+    //
     // TODO: Reference counted?
     let docs = YuriPosts {
-        title: request.title.clone(),
-        author: request.author.clone(),
-        op: request.op.clone(),
+        title,
+        author,
+        op,
         path,
-        source: request.source.clone(),
-        resolution: request.resolution.clone(),
-        time: request.time.clone(),
-        tags: request.tags.clone(),
-        stats: PostStats::default(),
+        source,
+        resolution,
+        time,
+        tags,
+        stats,
         comments: None,
     };
 
-    database
+    let oid = database
         .insert_one(docs, None)
         .await
-        .expect("Handle this error properly u lazy fuck");
+        .expect("Handle this error properly u lazy fuck")
+        .inserted_id
+        .as_object_id()
+        .expect("Could not convert to ObjectId")
+        .to_hex();
 
-    HttpResponse::Ok().body("yeet")
+    Ok(web::Json(DeleteImageRequest { oid }))
 }
 
 #[delete("/delete_post")]
@@ -145,21 +254,28 @@ pub async fn delete_post(
     database: Data<mongodb::Collection<YuriPosts>>,
     request: Json<DeleteImageRequest>,
 ) -> HttpResponse {
-    let filter = doc! { "title": format!("{}", &request.title) };
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
+    let filter = doc! {
+        "_id": oid,
+    };
 
-    database
-        .delete_one(filter, None)
+    let post_struct = database
+        .find_one(filter.clone(), None)
         .await
-        .expect("Handle this pweeze");
+        .expect("BRO WHAT DA HECK")
+        .expect("Unable to find post from ObjectId");
+
+    std::fs::remove_file(post_struct.path).unwrap_or(println!("Unable to remove file"));
+
+    database.delete_one(filter, None).await.expect("SHITTTT");
 
     HttpResponse::Ok().body("Deleted")
 }
 
-
 #[put("/like-post")]
 pub async fn like_post(
-        request: Json<LikeImageRequest>,
-        database: Data<mongodb::Collection<YuriPosts>>
+    request: Json<LikeImageRequest>,
+    database: Data<mongodb::Collection<YuriPosts>>,
 ) -> HttpResponse {
     // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
@@ -178,8 +294,8 @@ pub async fn like_post(
 
 #[put("/unlike-post")]
 pub async fn unlike_post(
-        request: Json<LikeImageRequest>,
-        database: Data<mongodb::Collection<YuriPosts>>
+    request: Json<LikeImageRequest>,
+    database: Data<mongodb::Collection<YuriPosts>>,
 ) -> HttpResponse {
     // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();

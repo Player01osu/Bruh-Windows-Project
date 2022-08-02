@@ -8,16 +8,21 @@ edition = "2021"
 [dependencies]
 actix-web = { version = "^4.0.1", features = ["openssl"] }
 actix-files = "^0.6.0"
-actix = "^0.13.0"
-actix-rt = "^2.7.0"
+actix-multipart = "0.4.0"
+actix-cors = "^0.6.1"
 ahash = "0.7.6"
 anyhow = "1.0.57"
 bson = "^2.3.0"
 compact_str = "0.4.0"
+chrono = "0.4.19"
+image = "0.24.3"
+sanitize-filename = "0.4.0"
+uuid = { version = "1.1.2", features = ["v4"] }
 dashmap = "^5.3.4"
 derive_more = "^0.99.17"
 env_logger = "^0.9.0"
 log = "^0.4.17"
+futures-util = { version = "0.3.21", default-features = false, features = ["std"] }
 mongodb = { version = "^2.2.2", features = ["tokio-runtime"] }
 once_cell = { version = "1.12.0", features = ["parking_lot"] }
 openssl = "^0.10.40"
