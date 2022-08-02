@@ -87,8 +87,10 @@ pub async fn view_posts(
 
     generated.gen_gallery(database, sort).await;
 
-    // FIXME: Kinda need this to NOT panic when empty.
-    generated.show.expect("Empty gallery")
+    match generated.show {
+        Some(documents) => documents,
+        None => Json(Vec::default())
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
