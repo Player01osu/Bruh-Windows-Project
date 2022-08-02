@@ -4,9 +4,11 @@ use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::Element;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, Properties, NodeRef};
+use yew::{html, Component, Context, Html, NodeRef, Properties};
 
-use common::mongodb::structs::{Comment, ImageExpandState, ImageRequest, PostStats, Sort, Source, Resolution};
+use common::mongodb::structs::{
+    Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Sort, Source,
+};
 
 #[derive(Clone, PartialEq)]
 pub struct SortStruct {
@@ -39,9 +41,18 @@ pub enum SortButtonsMessage {
 impl SortButtons {
     fn populate_buttons(&mut self, lookup_num: usize) {
         let lookup_buttons = [
-            (Rc::new("New".to_string()), Rc::new("/gallery/new".to_string())),
-            (Rc::new("Top".to_string()), Rc::new("/gallery/top".to_string())),
-            (Rc::new("Views".to_string()), Rc::new("/gallery/views".to_string())),
+            (
+                Rc::new("New".to_string()),
+                Rc::new("/gallery/new".to_string()),
+            ),
+            (
+                Rc::new("Top".to_string()),
+                Rc::new("/gallery/top".to_string()),
+            ),
+            (
+                Rc::new("Views".to_string()),
+                Rc::new("/gallery/views".to_string()),
+            ),
         ];
 
         let (text, _) = lookup_buttons.get(lookup_num).unwrap();
@@ -137,7 +148,6 @@ impl Component for SortButtons {
     }
 }
 
-
 pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
@@ -196,7 +206,10 @@ impl Image {
                     true => -20,
                     false => 0,
                 };
-                self.style = format!("max-width: {}px; width: auto; margin-left: {}%", avail_width, margin_left);
+                self.style = format!(
+                    "max-width: {}px; width: auto; margin-left: {}%",
+                    avail_width, margin_left
+                );
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
@@ -265,13 +278,14 @@ impl Component for Posts {
         let sort = ctx.props().sort.clone();
         let new_image_vec: Vec<Image> = Vec::new();
         ctx.link().send_future(async move {
-            let fetched_images: Vec<ImageRequest> = Request::get(format!{"/api/view-posts/1/{}", sort.clone()}.as_str())
-                .send()
-                .await
-                .unwrap()
-                .json()
-                .await
-                .unwrap();
+            let fetched_images: Vec<ImageRequest> =
+                Request::get(format! {"/api/view-posts/1/{}", sort.clone()}.as_str())
+                    .send()
+                    .await
+                    .unwrap()
+                    .json()
+                    .await
+                    .unwrap();
             ImageMessage::QueryImages(fetched_images)
         });
 
@@ -294,7 +308,8 @@ impl Component for Posts {
         match msg {
             ImageMessage::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
-                let avail_width = ctx.props()
+                let avail_width = ctx
+                    .props()
                     .gallery_node_ref
                     .cast::<Element>()
                     .unwrap()
@@ -302,7 +317,7 @@ impl Component for Posts {
 
                 image.toggle_expand(avail_width);
                 true
-            },
+            }
             ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
@@ -324,7 +339,7 @@ impl Component for Posts {
                     })
                 }
                 true
-            },
+            }
             ImageMessage::ShowMore => {
                 match self.scroll_bottom_buffer {
                     0 => {
@@ -350,13 +365,13 @@ impl Component for Posts {
                         self.scroll_bottom_buffer = 20;
 
                         true
-                    },
+                    }
                     _ => {
                         self.scroll_bottom_buffer -= 1;
                         false
-                    },
+                    }
                 }
-            },
+            }
             ImageMessage::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
 
@@ -399,7 +414,7 @@ impl Component for Posts {
                     }
                 };
                 true
-            },
+            }
             ImageMessage::None => false,
         }
     }
@@ -430,7 +445,7 @@ impl Component for Posts {
             true => {
                 ctx.link().send_message(ImageMessage::ShowMore);
                 true
-            },
+            }
             false => false,
         }
     }
