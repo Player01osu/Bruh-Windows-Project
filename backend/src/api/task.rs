@@ -89,7 +89,7 @@ pub async fn view_posts(
 
     match generated.show {
         Some(documents) => documents,
-        None => Json(Vec::default())
+        None => Json(Vec::default()),
     }
 }
 
@@ -125,10 +125,10 @@ pub async fn post_image(
     let time = utc_now.timestamp() as u64;
 
     // FIXME: This is probably not good
-    let mut title = String::new();
-    let mut author = String::new();
+    let mut title = String::default();
+    let mut author = String::default();
     let mut op = String::default();
-    let mut material = String::new();
+    let mut material = String::default();
     let mut link: Option<String> = None;
     let mut width: usize = 480;
     let mut height: usize = 640;
@@ -137,6 +137,7 @@ pub async fn post_image(
     let mut path = String::default();
 
     while let Some(mut field) = payload.try_next().await? {
+        // Match chunks of field name to title
         match field.name() {
             "title" => {
                 if let Some(chunk) = field.try_next().await? {
@@ -150,12 +151,7 @@ pub async fn post_image(
             }
             "op" => {
                 if let Some(chunk) = field.try_next().await? {
-                    let chunk_to_str = std::str::from_utf8(&chunk)?; // FIXME: Doesn't default
-                                                                     // empty
-                    op = match chunk_to_str.is_empty() {
-                        true => String::from("an"),
-                        false => String::from(chunk_to_str),
-                    };
+                    op = std::str::from_utf8(&chunk)?.to_owned();
                 }
             }
             "material" => {
@@ -178,7 +174,7 @@ pub async fn post_image(
                     tags = match chunk_to_str.is_empty() {
                         true => None,
                         false => Some(
-                            String::from(chunk_to_str)
+                            chunk_to_str
                                 .split_terminator(',')
                                 .map(|s| String::from(s.trim()))
                                 .collect::<Vec<String>>(),
@@ -192,28 +188,25 @@ pub async fn post_image(
                     filename = sanitize_filename::sanitize(filename);
                 }
             }
+            "width" => {
+                if let Some(chunk) = field.try_next().await? {
+                    width = std::str::from_utf8(&chunk)?.parse().unwrap_or(480);
+                }
+            }
+            "height" => {
+                if let Some(chunk) = field.try_next().await? {
+                    height = std::str::from_utf8(&chunk)?.parse().unwrap_or(640);
+                }
+            }
             "image" => {
-                // A multipart/form-data stream has to contain `content_disposition`
                 let filepath = format!("./assets/posts/{author}-{time}-{filename}");
                 path = filepath.clone();
-                let mut raw_data: Vec<u8> = Vec::default();
 
                 let mut f = web::block(|| std::fs::File::create(filepath)).await??;
 
                 while let Some(chunk) = field.try_next().await? {
-                    raw_data.extend(chunk.iter().clone()); // FIXME: This is bad... I think?
                     f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
                 }
-                let dimensions = web::block(move || {
-                    Reader::new(std::io::Cursor::new(raw_data))
-                        .with_guessed_format()
-                        .unwrap()
-                        .into_dimensions()
-                })
-                .await?
-                .unwrap();
-                width = dimensions.0 as usize;
-                height = dimensions.1 as usize;
             }
             _ => (),
         }
@@ -224,7 +217,13 @@ pub async fn post_image(
     let stats = PostStats { likes: 0, views: 0 };
 
     let source = Source { material, link };
-    //
+
+    // Have to check string here for some reason.
+    let op = match op.is_empty() {
+        true => String::from("monika"),
+        false => op
+    };
+
     // TODO: Reference counted?
     let docs = YuriPosts {
         title,

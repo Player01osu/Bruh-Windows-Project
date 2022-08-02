@@ -3,8 +3,7 @@ use gloo_file::File;
 use reqwest::multipart::Form;
 use reqwest::{multipart, Client};
 use std::collections::HashMap;
-use std::rc::Rc;
-use web_sys::{DragEvent, Event, FileList, FormData, HtmlFormElement, HtmlInputElement};
+use web_sys::{console, DragEvent, Event, FileList, FormData, HtmlFormElement, HtmlInputElement};
 use yew::{html, Callback, Component, Context, Html, TargetCast};
 
 #[derive(Debug, Clone)]
@@ -16,6 +15,8 @@ pub struct UploadFields {
     link: String,
     tags: String,
     filename: String,
+    width: u32,
+    height: u32,
 }
 
 impl Default for UploadFields {
@@ -28,6 +29,8 @@ impl Default for UploadFields {
             link: String::default(),
             tags: String::default(),
             filename: String::default(),
+            width: 0,
+            height: 0,
         }
     }
 }
@@ -66,7 +69,7 @@ pub struct FileUpload {
     form: Form,
     readers: HashMap<String, FileReader>,
     fields: UploadFields,
-    file_data: Rc<Vec<u8>>,
+    file_data: Vec<u8>,
 }
 
 pub enum UploadMsg {
@@ -75,6 +78,21 @@ pub enum UploadMsg {
     Submit(FormData),
     None,
 }
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+#[macro_export]
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
+use image::io::Reader;
 
 impl Component for FileUpload {
     type Properties = ();
@@ -86,7 +104,7 @@ impl Component for FileUpload {
             form: Form::default(),
             readers: HashMap::default(),
             fields: UploadFields::default(),
-            file_data: Rc::default(),
+            file_data: Vec::default(),
         }
     }
 
@@ -112,9 +130,17 @@ impl Component for FileUpload {
                 true
             }
             UploadMsg::Loaded(file_name, data) => {
-                self.fields.filename = file_name.clone();
-                self.file_data = Rc::new(data);
+                self.file_data = data.clone();
+                let dimensions = Reader::new(std::io::Cursor::new(data))
+                    .with_guessed_format()
+                    .unwrap()
+                    .into_dimensions()
+                    .unwrap();
+                self.fields.width = dimensions.0;
+                self.fields.height = dimensions.1;
+
                 self.readers.remove(&file_name);
+                self.fields.filename = file_name;
                 true
             }
             UploadMsg::Submit(data) => {
@@ -123,6 +149,7 @@ impl Component for FileUpload {
                 let fields = self.fields.clone();
                 let part = multipart::Part::bytes(file_data.to_vec());
 
+                // FIXME: This could be better :>
                 let form = multipart::Form::new()
                     .text("title", fields.title)
                     .text("author", fields.author)
@@ -131,6 +158,8 @@ impl Component for FileUpload {
                     .text("link", fields.link)
                     .text("tags", fields.tags)
                     .text("filename", fields.filename)
+                    .text("width", fields.width.to_string())
+                    .text("height", fields.height.to_string())
                     .part("image", part);
 
                 ctx.link().send_future(async move {
