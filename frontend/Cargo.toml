@@ -6,13 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-futures = "0.3.21"
+base64 = "0.13.0"
+chrono = "0.4.19"
 common = { path = "../common" }
+futures = "0.3.21"
 gloo-utils = "0.1.4"
+gloo-file = "0.2.3"
 reqwasm = "^0.5.0"
+reqwest = { version = "^0.11.11", features = ["multipart"] }
 serde = { version = "^1.0", features = ["derive"] }
+js-sys = "0.3.59"
 yew = "^0.19"
 yew-router = "^0.16"
 wasm-bindgen = "^0.2.81"
 wasm-bindgen-futures = "^0.4.31"
-web-sys = "^0.3.58"
+web-sys = { version = "^0.3.59", features = ["Document", "HtmlCollection", "File", "DragEvent", "DataTransfer", "FormData", "HtmlFormElement", "HtmlElement"] }
