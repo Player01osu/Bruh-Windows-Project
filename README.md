@@ -108,9 +108,8 @@ ubuntu repo [mongodb-bin](https://aur.archlinux.org/packages/mongodb-bin)
 Clone this repository
 
 ```sh
-$ git clone https://github.com/player01osu/Bruh-Web-Server.git`
+$ git clone https://github.com/player01osu/Yuri-Web.git`
 ```
-
 ## TODO
 
 - [TODO](TODO.md)
