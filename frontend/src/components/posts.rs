@@ -294,7 +294,11 @@ impl Component for Posts {
         match msg {
             ImageMessage::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
-                let avail_width = ctx.props().gallery_node_ref.cast::<Element>().unwrap().client_width();
+                let avail_width = ctx.props()
+                    .gallery_node_ref
+                    .cast::<Element>()
+                    .unwrap()
+                    .client_width();
 
                 image.toggle_expand(avail_width);
                 true
