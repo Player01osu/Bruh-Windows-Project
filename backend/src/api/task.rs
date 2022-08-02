@@ -221,7 +221,7 @@ pub async fn post_image(
     // Have to check string here for some reason.
     let op = match op.is_empty() {
         true => String::from("monika"),
-        false => op
+        false => op,
     };
 
     // TODO: Reference counted?

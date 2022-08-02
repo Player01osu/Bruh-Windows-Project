@@ -1,5 +1,6 @@
 use gloo_file::callbacks::FileReader;
 use gloo_file::File;
+use image::io::Reader;
 use reqwest::multipart::Form;
 use reqwest::{multipart, Client};
 use std::collections::HashMap;
@@ -66,33 +67,18 @@ impl UploadFields {
 
 pub struct FileUpload {
     data: FormData,
-    form: Form,
-    readers: HashMap<String, FileReader>,
     fields: UploadFields,
     file_data: Vec<u8>,
+    form: Form,
+    readers: HashMap<String, FileReader>,
 }
 
 pub enum UploadMsg {
-    Loaded(String, Vec<u8>),
     Files(Vec<File>),
+    Loaded(String, Vec<u8>),
     Submit(FormData),
     None,
 }
-
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-#[macro_export]
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-use image::io::Reader;
 
 impl Component for FileUpload {
     type Properties = ();
