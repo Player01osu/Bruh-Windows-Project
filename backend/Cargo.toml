@@ -9,10 +9,13 @@ edition = "2021"
 actix-web = { version = "^4.0.1", features = ["openssl"] }
 actix-files = "^0.6.0"
 actix-multipart = "0.4.0"
+actix-cors = "^0.6.1"
 ahash = "0.7.6"
 anyhow = "1.0.57"
 bson = "^2.3.0"
 compact_str = "0.4.0"
+chrono = "0.4.19"
+image = "0.24.3"
 sanitize-filename = "0.4.0"
 uuid = { version = "1.1.2", features = ["v4"] }
 dashmap = "^5.3.4"
