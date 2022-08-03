@@ -175,7 +175,8 @@ pub async fn post_image(
                             chunk_to_str
                                 .split_terminator(',')
                                 .map(|s| String::from(s.trim()))
-                                .collect::<Vec<String>>()),
+                                .collect::<Vec<String>>(),
+                        ),
                         false => None,
                     };
                 }
@@ -198,7 +199,8 @@ pub async fn post_image(
                 }
             }
             "image" => {
-                let filepath = format!("./assets/posts/{author}-{time}-{filename}");
+                let mut filepath = format!("./assets/posts/{author}-{time}-{filename}");
+                filepath.retain(|c| c != '?' );
                 path = filepath.clone();
 
                 let mut f = web::block(|| std::fs::File::create(filepath)).await??;
