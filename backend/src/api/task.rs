@@ -4,7 +4,6 @@ use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
 use actix_web::{web, Error, HttpResponse, HttpResponseBuilder, Responder};
 use bson::oid::ObjectId;
 use futures_util::TryStreamExt as _;
-use image::io::Reader;
 use mongodb::bson::Document;
 use mongodb::{bson::doc, options::FindOptions};
 use serde::{Deserialize, Serialize};
@@ -63,13 +62,13 @@ impl Gallery {
 
         let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
 
-        match paths.is_empty() {
+        match !paths.is_empty() {
             true => {
-                self.show = None;
+                self.show = Some(Json(paths));
                 self
             }
             false => {
-                self.show = Some(Json(paths));
+                self.show = None;
                 self
             }
         }
@@ -162,28 +161,28 @@ pub async fn post_image(
             "link" => {
                 if let Some(chunk) = field.try_next().await? {
                     let chunk_to_str = std::str::from_utf8(&chunk)?;
-                    link = match chunk_to_str.is_empty() {
-                        true => None,
-                        false => Some(String::from(chunk_to_str)),
+                    link = match !chunk_to_str.is_empty() {
+                        true => Some(String::from(chunk_to_str)),
+                        false => None,
                     };
                 }
             }
             "tags" => {
                 if let Some(chunk) = field.try_next().await? {
                     let chunk_to_str = std::str::from_utf8(&chunk)?;
-                    tags = match chunk_to_str.is_empty() {
-                        true => None,
-                        false => Some(
+                    tags = match !chunk_to_str.is_empty() {
+                        true => Some(
                             chunk_to_str
                                 .split_terminator(',')
                                 .map(|s| String::from(s.trim()))
-                                .collect::<Vec<String>>(),
-                        ),
+                                .collect::<Vec<String>>()),
+                        false => None,
                     };
                 }
             }
             "filename" => {
                 if let Some(chunk) = field.try_next().await? {
+                    // FIXME: Some characters break image serving
                     filename = std::str::from_utf8(&chunk)?.to_owned();
                     filename = sanitize_filename::sanitize(filename);
                 }
