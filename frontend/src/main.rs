@@ -2,14 +2,17 @@ mod components;
 mod gallery;
 mod about;
 mod tags;
+mod not_found;
 
 use components::header::Header;
 use components::container::Container;
 use about::About;
-use gallery::Gallery;
+use gallery::{Gallery, Sort};
+use not_found::NotFound;
 use tags::Tags;
 use yew::{html, Component, Context, Html};
 use yew_router::{BrowserRouter, Switch, Routable};
+use yew_router::prelude::*;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -23,6 +26,9 @@ pub enum Route {
     About,
     #[at("/tags")]
     Tags,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
 #[derive(Clone, Routable, PartialEq)]
@@ -33,6 +39,9 @@ pub enum GalleryRoute {
     Top,
     #[at("/gallery/views")]
     Views,
+    #[not_found]
+    #[at("/gallery/404")]
+    NotFound,
 }
 
 pub fn switch(route: &Route) -> Html {
@@ -41,17 +50,21 @@ pub fn switch(route: &Route) -> Html {
         Route::GalleryRouter => html!{
             <Switch<GalleryRoute> render={Switch::render(gallery_switch)} />
         },
-        Route::Gallery => html!{ <Gallery sort="new"/> },
+        Route::Gallery => html!{ <Gallery sort={Sort::New}/> },
         Route::About => html! { <About/> },
         Route::Tags => html! { <Tags/> },
+        Route::NotFound => html!{ <NotFound/> },
     }
 }
 
 pub fn gallery_switch(route: &GalleryRoute) -> Html {
     match route {
-        GalleryRoute::New => html!{ <Gallery sort="new"/> },
-        GalleryRoute::Top => html!{ <Gallery sort="top"/> },
-        GalleryRoute::Views => html!{ <Gallery sort="views"/> },
+        GalleryRoute::New => html!{ <Gallery sort={Sort::New}/> },
+        GalleryRoute::Top => html!{ <Gallery sort={Sort::Top}/> },
+        GalleryRoute::Views => html!{ <Gallery sort={Sort::Views}/> },
+        GalleryRoute::NotFound => html!{
+            <Redirect<Route> to={Route::NotFound}/>
+        }
     }
 }
 
@@ -103,10 +116,6 @@ impl Component for App {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        true
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
