@@ -183,7 +183,6 @@ pub async fn post_image(
             }
             "filename" => {
                 if let Some(chunk) = field.try_next().await? {
-                    // FIXME: Some characters break image serving
                     filename = std::str::from_utf8(&chunk)?.to_owned();
                     filename = sanitize_filename::sanitize(filename);
                 }

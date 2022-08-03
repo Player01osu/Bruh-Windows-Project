@@ -1,4 +1,6 @@
+use crate::Route;
 use yew::{html, Component, Context, Html, Properties};
+use yew_router::prelude::*;
 
 pub struct Sidebar {
     visibility: SidebarVisibility,
@@ -18,6 +20,7 @@ pub enum SidebarVisibility {
 pub struct LinkProps {
     link: String,
     text: String,
+    route: Route,
 }
 
 pub struct Links;
@@ -37,13 +40,11 @@ impl Component for Links {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.props().link.clone();
         let text = ctx.props().text.clone();
-        html!{
+        let route = ctx.props().route.clone();
+        html! {
             <div class="indiv">
                 <div>
-                    <a href={format!("{}", link)}
-                        class="link"
-                        style="text-decoration: none;">{text}
-                    </a>
+                    <Link<Route> to={route} classes="link">{ format!("{text}") }</Link<Route>>
                 </div>
             </div>
         }
@@ -94,11 +95,19 @@ impl Component for Sidebar {
                             </div>
                         <center>
                             <div class="links">
-                                <Links link="/" text="HOME"/>
-                                <Links link="/gallery" text="GALLERY"/>
-                                <Links link="/tags" text="TAGS"/>
-                                <Links link="/about" text="ABOUT"/>
-                                <Links link="https://github.com/player01osu/yuri-web" text="GITHUB"/>
+                                <Links link="/" text="HOME" route={Route::Home}/>
+                                <Links link="/gallery" text="GALLERY" route={Route::Gallery}/>
+                                <Links link="/tags" text="TAGS" route={Route::Tags}/>
+                                <Links link="/about" text="ABOUT" route={Route::About}/>
+                                <div class="indiv">
+                                    <div>
+                                        <a href="https://github.com/player01osu/yuri-web"
+                                            class="link"
+                                            style="text-decoration: none;">
+                                                {"GITHUB"}
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </center>
                     </div>

@@ -5,6 +5,13 @@ use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Component, Context, Html, NodeRef, Properties};
 
+#[derive(Clone, PartialEq)]
+pub enum Sort {
+    New,
+    Top,
+    Views,
+}
+
 pub struct Gallery {
     document_height: f64,
     wheel_position: f64,
@@ -13,16 +20,16 @@ pub struct Gallery {
 
 #[derive(Properties, PartialEq)]
 pub struct GalleryProps {
-    pub sort: String,
+    pub sort: Sort,
 }
 
-pub enum LoadOnBottom {
+pub enum GalleryMsg {
     LoadMore(f64, f64),
 }
 
 impl Component for Gallery {
     type Properties = GalleryProps;
-    type Message = LoadOnBottom;
+    type Message = GalleryMsg;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
@@ -34,7 +41,7 @@ impl Component for Gallery {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            LoadOnBottom::LoadMore(document_height, wheel_position) => {
+            GalleryMsg::LoadMore(document_height, wheel_position) => {
                 self.document_height = document_height / 1.58;
                 self.wheel_position = wheel_position * 1.5;
                 true
@@ -50,14 +57,17 @@ impl Component for Gallery {
                 .get_element_by_id("loadOnBottom")
                 .expect("Element id not found")
                 .scroll_height();
-            LoadOnBottom::LoadMore(page_height.into(), scroll_y)
+            GalleryMsg::LoadMore(page_height.into(), scroll_y)
         });
+        let node_ref = self.node_ref.clone();
+        let sort = ctx.props().sort.clone();
         let show_posts = html! {
-            <Posts sort={ctx.props().sort.clone()}
+            <Posts {sort}
                 document_height={self.document_height}
                 wheel_position={self.wheel_position}
-                gallery_node_ref={self.node_ref.clone()}/>
+                gallery_node_ref={node_ref}/>
         };
+        let node_ref = self.node_ref.clone();
 
         html! {
             <>
@@ -65,7 +75,7 @@ impl Component for Gallery {
                 <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
                 <body style="background-color: black;">
                     <Header/>
-                    <div id="loadOnBottom" ref={ self.node_ref.clone() }{ onwheel }>
+                    <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
                         <Container/>
                         { show_posts }
                     </div>

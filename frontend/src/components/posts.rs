@@ -1,24 +1,30 @@
+use crate::gallery::Sort;
+use crate::Route;
 use std::rc::Rc;
 
 use reqwasm::http::Request;
 use serde::Deserialize;
 use web_sys::Element;
-use yew::html::Scope;
+use yew::html::{IntoPropValue, Scope};
 use yew::{html, Component, Context, Html, NodeRef, Properties};
+use yew_router::prelude::Redirect;
+use yew_router::prelude::*;
 
 use common::mongodb::structs::{
-    Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Sort, Source,
+    Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Source,
 };
+use yew_router::scope_ext::HistoryHandle;
+
+use crate::GalleryRoute;
 
 #[derive(Clone, PartialEq)]
 pub struct SortStruct {
-    link: Rc<String>,
+    link: GalleryRoute,
     text: Rc<String>,
 }
 
-#[derive(Clone, PartialEq)]
 pub struct SortButtons {
-    node_ref: NodeRef,
+    _listener: HistoryHandle,
     sort_current: String,
     sort_current_display: String,
     sort_one: SortStruct,
@@ -28,7 +34,7 @@ pub struct SortButtons {
 impl Default for SortStruct {
     fn default() -> Self {
         Self {
-            link: Rc::new("/gallery/new".to_string()),
+            link: GalleryRoute::New,
             text: Rc::new("New".to_string()),
         }
     }
@@ -41,18 +47,9 @@ pub enum SortButtonsMessage {
 impl SortButtons {
     fn populate_buttons(&mut self, lookup_num: usize) {
         let lookup_buttons = [
-            (
-                Rc::new("New".to_string()),
-                Rc::new("/gallery/new".to_string()),
-            ),
-            (
-                Rc::new("Top".to_string()),
-                Rc::new("/gallery/top".to_string()),
-            ),
-            (
-                Rc::new("Views".to_string()),
-                Rc::new("/gallery/views".to_string()),
-            ),
+            (Rc::new("New".to_string()), GalleryRoute::New),
+            (Rc::new("Top".to_string()), GalleryRoute::Top),
+            (Rc::new("Views".to_string()), GalleryRoute::Views),
         ];
 
         let (text, _) = lookup_buttons.get(lookup_num).unwrap();
@@ -60,13 +57,13 @@ impl SortButtons {
         let lookup_buttons = lookup_buttons.clone();
         let (text, link) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
 
-        self.sort_one.link = link.clone();
+        self.sort_one.link = link.to_owned();
         self.sort_one.text = text.clone();
 
         let lookup_buttons = lookup_buttons.clone();
         let (text, link) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
 
-        self.sort_two.link = link.clone();
+        self.sort_two.link = link.to_owned();
         self.sort_two.text = text.clone();
     }
 }
@@ -76,19 +73,33 @@ impl Component for SortButtons {
     type Properties = ();
     type Message = SortButtonsMessage;
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
+        let listener = ctx
+            .link()
+            .add_history_listener(ctx.link().callback(|_| SortButtonsMessage::CreateButtons))
+            .unwrap();
+
         Self {
-            sort_current: String::new(),
+            _listener: listener,
+            sort_current: String::default(),
             sort_current_display: String::from("New"),
-            node_ref: NodeRef::default(),
             sort_one: Default::default(),
             sort_two: Default::default(),
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             SortButtonsMessage::CreateButtons => {
+                self.sort_current = ctx
+                    .link()
+                    .location()
+                    .unwrap()
+                    .pathname()
+                    .split_once("gallery")
+                    .unwrap_or(("",""))
+                    .1
+                    .to_string();
                 match self.sort_current.as_str() {
                     "/new" => {
                         self.populate_buttons(0 as usize);
@@ -115,11 +126,11 @@ impl Component for SortButtons {
 
         html! {
             <>
-                <div class="sort-buttons" ref={self.node_ref.clone()}>
+                <div class="sort-buttons">
                     <button class="dropbtn">{current_sort_display}</button>
                     <div class="sort-button-content">
-                        <a href={sort_one.link.to_string()}>{sort_one.text}</a>
-                        <a href={sort_two.link.to_string()}>{sort_two.text}</a>
+                        <Link<GalleryRoute> to={sort_one.link} classes="link">{ sort_one.text }</Link<GalleryRoute>>
+                        <Link<GalleryRoute> to={sort_two.link} classes="link">{ sort_two.text }</Link<GalleryRoute>>
                     </div>
                 </div>
             </>
@@ -127,16 +138,11 @@ impl Component for SortButtons {
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        self.sort_current = self
-            .node_ref
-            .cast::<Element>()
+        self.sort_current = ctx
+            .link()
+            .location()
             .unwrap()
-            .base_uri()
-            .unwrap()
-            .unwrap();
-
-        self.sort_current = self
-            .sort_current
+            .pathname()
             .split_once("gallery")
             .unwrap()
             .1
@@ -151,6 +157,7 @@ impl Component for SortButtons {
 pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
+    LoadPage,
     ShowMore,
     Like(usize),
     None,
@@ -158,7 +165,7 @@ pub enum ImageMessage {
 
 #[derive(PartialEq, Properties)]
 pub struct PostProps {
-    pub sort: String,
+    pub sort: Sort,
     pub document_height: f64,
     pub wheel_position: f64,
     pub gallery_node_ref: NodeRef,
@@ -184,6 +191,7 @@ pub struct Image {
 }
 
 pub struct Posts {
+    listener: HistoryHandle,
     images: Vec<Image>,
     page: u16,
     sort: Sort,
@@ -234,24 +242,20 @@ impl Image {
 
 impl Posts {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
-        html! {
-            <div class="image-indiv">
-                <div class="user-inter">
-                        <button type="button"
-                            class={format!("{}", image.heart_class)}
-                            onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
-                            <ion-icon name="heart-outline"></ion-icon>
-                        </button>
-                        <button type="button" class="comments">
-                            <ion-icon name="chatbubble-outline"></ion-icon>
-                        </button>
-                </div>
-                <img alt={format!("{} {}", image.author, image.title)}
-                    src={format!(".{}", image.path)}
-                    class={format!("{}", image.class)}
-                    loading="lazy"
-                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
-                    />
+        let buttons = html! {
+            <div class="user-inter">
+                    <button type="button"
+                        class={format!("{}", image.heart_class)}
+                        onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
+                        <ion-icon name="heart-outline"></ion-icon>
+                    </button>
+                    <button type="button" class="comments">
+                        <ion-icon name="chatbubble-outline"></ion-icon>
+                    </button>
+            </div>
+        };
+
+        let tags = html! {
                 <div class="info">
                     <p>
                     {format!("{}", image.tags
@@ -261,6 +265,18 @@ impl Posts {
                     )}
                     </p>
                 </div>
+        };
+
+        html! {
+            <div class="image-indiv">
+                { buttons }
+                <img alt={format!("{} {}", image.author, image.title)}
+                    src={format!(".{}", image.path)}
+                    class={format!("{}", image.class)}
+                    loading="lazy"
+                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
+                    />
+            { tags }
             </div>
         }
     }
@@ -271,11 +287,15 @@ impl Component for Posts {
     type Properties = PostProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let sort = ctx.props().sort.clone();
+        let sort = match ctx.props().sort {
+            Sort::New => "new",
+            Sort::Views => "views",
+            Sort::Top => "top",
+        };
         let new_image_vec: Vec<Image> = Vec::new();
         ctx.link().send_future(async move {
             let fetched_images: Vec<ImageRequest> =
-                Request::get(format! {"/api/view-posts/1/{}", sort.clone()}.as_str())
+                Request::get(format! {"/api/view-posts/1/{}", sort}.as_str())
                     .send()
                     .await
                     .unwrap()
@@ -285,17 +305,16 @@ impl Component for Posts {
             ImageMessage::QueryImages(fetched_images)
         });
 
-        let sort = match ctx.props().sort.as_str() {
-            "new" => Sort::New,
-            "top" => Sort::Top,
-            "views" => Sort::Views,
-            _ => Sort::New,
-        };
+        let listener = ctx
+            .link()
+            .add_history_listener(ctx.link().callback(|_| ImageMessage::LoadPage))
+            .unwrap();
 
         return Self {
+            listener,
             images: new_image_vec,
             page: 1,
-            sort,
+            sort: ctx.props().sort.clone(),
             scroll_bottom_buffer: 0,
         };
     }
@@ -312,6 +331,37 @@ impl Component for Posts {
                     .client_width();
 
                 image.toggle_expand(avail_width);
+                true
+            }
+            ImageMessage::LoadPage => {
+                self.images.clear();
+                //let sort = match ctx.link().location().unwrap().pathname().as_str() {
+                //     "new" => Sort::New,
+                //     "views" => Sort::Views,
+                //     "top" => Sort::Top,
+                //};
+                let sort = ctx
+                    .link()
+                    .location()
+                    .unwrap()
+                    .pathname()
+                    .split_once("gallery")
+                    .unwrap_or(("",""))
+                    .1
+                    .to_string();
+                if sort.ne("") {
+                    ctx.link().send_future(async move {
+                        let fetched_images: Vec<ImageRequest> =
+                            Request::get(format! {"/api/view-posts/1/{}", sort}.as_str())
+                                .send()
+                                .await
+                                .unwrap()
+                                .json()
+                                .await
+                                .unwrap();
+                        ImageMessage::QueryImages(fetched_images)
+                    });
+                }
                 true
             }
             ImageMessage::QueryImages(fetched_images) => {
@@ -442,7 +492,7 @@ impl Component for Posts {
                 ctx.link().send_message(ImageMessage::ShowMore);
                 true
             }
-            false => false,
+            false => true,
         }
     }
 }
