@@ -1,13 +1,12 @@
 use crate::gallery::Sort;
-use crate::Route;
+use crate::routes::GalleryRoute;
 use std::rc::Rc;
 
 use reqwasm::http::Request;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use web_sys::Element;
 use yew::html::{IntoPropValue, Scope};
 use yew::{html, Component, Context, Html, NodeRef, Properties};
-use yew_router::prelude::Redirect;
 use yew_router::prelude::*;
 
 use common::mongodb::structs::{
@@ -15,7 +14,6 @@ use common::mongodb::structs::{
 };
 use yew_router::scope_ext::HistoryHandle;
 
-use crate::GalleryRoute;
 
 #[derive(Clone, PartialEq)]
 pub struct SortStruct {
@@ -154,6 +152,19 @@ impl Component for SortButtons {
     }
 }
 
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+#[macro_export]
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
 pub enum ImageMessage {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
@@ -191,7 +202,7 @@ pub struct Image {
 }
 
 pub struct Posts {
-    listener: HistoryHandle,
+    _listener: HistoryHandle,
     images: Vec<Image>,
     page: u16,
     sort: Sort,
@@ -205,15 +216,15 @@ pub enum ImageLiked {
 }
 
 impl Image {
-    pub fn toggle_expand(&mut self, avail_width: i32) {
+    pub fn toggle_expand(&mut self, _avail_width: i32) {
         match &self.state {
             ImageExpandState::Unfocus => {
-                let avail_width = avail_width as f32 * 0.71;
+                //let avail_width = avail_width as f32 * 0.71;
 
-                let margin_left = match self.resolution.width > 510 {
-                    true => -20,
-                    false => 0,
-                };
+                //let margin_left = match self.resolution.width > 510 {
+                //    true => -20,
+                //    false => 0,
+                //};
                 self.class = format!("yuri-img-clicked");
                 self.state = ImageExpandState::Focus
             }
@@ -280,20 +291,23 @@ impl Posts {
             </div>
         }
     }
-}
 
-impl Component for Posts {
-    type Message = ImageMessage;
-    type Properties = PostProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let sort = match ctx.props().sort {
-            Sort::New => "new",
-            Sort::Views => "views",
-            Sort::Top => "top",
-        };
-        let new_image_vec: Vec<Image> = Vec::new();
-        ctx.link().send_future(async move {
+    fn retrieve_posts(link: &Scope<Self>) {
+        let mut sort = link
+            .location()
+            .unwrap()
+            .pathname()
+            .split_once("gallery")
+            .unwrap_or(("","/new"))
+            .1
+            .to_string();
+        // FIXME: this kinda hacky
+        if sort.is_empty() {
+            sort = "new".to_string();
+        }
+        //let query = ctx.link().location().unwrap().query::<TestQuery>().unwrap();
+        //console_log!("{:?}", query);
+        link.send_future(async move {
             let fetched_images: Vec<ImageRequest> =
                 Request::get(format! {"/api/view-posts/1/{}", sort}.as_str())
                     .send()
@@ -304,6 +318,22 @@ impl Component for Posts {
                     .unwrap();
             ImageMessage::QueryImages(fetched_images)
         });
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TestQuery {
+    #[serde(rename(serialize = "q", deserialize = "query"))]
+    query: String,
+}
+
+impl Component for Posts {
+    type Message = ImageMessage;
+    type Properties = PostProps;
+
+    fn create(ctx: &Context<Self>) -> Self {
+        let images: Vec<Image> = Vec::default();
+        Posts::retrieve_posts(ctx.link());
 
         let listener = ctx
             .link()
@@ -311,8 +341,8 @@ impl Component for Posts {
             .unwrap();
 
         return Self {
-            listener,
-            images: new_image_vec,
+            _listener: listener,
+            images,
             page: 1,
             sort: ctx.props().sort.clone(),
             scroll_bottom_buffer: 0,
@@ -335,28 +365,7 @@ impl Component for Posts {
             }
             ImageMessage::LoadPage => {
                 self.images.clear();
-                let sort = ctx
-                    .link()
-                    .location()
-                    .unwrap()
-                    .pathname()
-                    .split_once("gallery")
-                    .unwrap_or(("",""))
-                    .1
-                    .to_string();
-                if sort.ne("") {
-                    ctx.link().send_future(async move {
-                        let fetched_images: Vec<ImageRequest> =
-                            Request::get(format! {"/api/view-posts/1/{}", sort}.as_str())
-                                .send()
-                                .await
-                                .unwrap()
-                                .json()
-                                .await
-                                .unwrap();
-                        ImageMessage::QueryImages(fetched_images)
-                    });
-                }
+                Posts::retrieve_posts(ctx.link());
                 true
             }
             ImageMessage::QueryImages(fetched_images) => {
