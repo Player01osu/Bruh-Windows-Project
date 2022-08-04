@@ -1,6 +1,8 @@
 use crate::Route;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{html, Callback, Component, Context, Html, Properties};
 use yew_router::prelude::*;
+
+use super::template::{Body, TemplateMsg};
 
 pub struct Sidebar {
     visibility: SidebarVisibility,
@@ -38,7 +40,6 @@ impl Component for Links {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.props().link.clone();
         let text = ctx.props().text.clone();
         let route = ctx.props().route.clone();
         html! {
@@ -54,22 +55,27 @@ impl Component for Links {
 impl Component for Sidebar {
     type Properties = ();
     type Message = SidebarMsg;
+
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             visibility: SidebarVisibility::Show,
             style: String::new(),
         }
     }
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        let (body, _) = ctx.link().context::<Body>(Callback::noop()).unwrap();
         match msg {
             SidebarMsg::Toggle => {
                 match self.visibility {
                     SidebarVisibility::Show => {
                         self.style = "display: none;".to_string();
+                        body.callback.emit(TemplateMsg::ToggleSidebar);
                         self.visibility = SidebarVisibility::Hidden;
                     }
                     SidebarVisibility::Hidden => {
-                        self.style = String::new();
+                        self.style = String::default();
+                        body.callback.emit(TemplateMsg::ToggleSidebar);
                         self.visibility = SidebarVisibility::Show;
                     }
                 }
@@ -77,8 +83,30 @@ impl Component for Sidebar {
             }
         }
     }
+
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
+
+        let links = html! {
+            <>
+                <div class="links">
+                    <Links link="/" text="HOME" route={Route::Home}/>
+                    <Links link="/gallery" text="GALLERY" route={Route::Gallery}/>
+                    <Links link="/tags" text="TAGS" route={Route::Tags}/>
+                    <Links link="/about" text="ABOUT" route={Route::About}/>
+                    <div class="indiv">
+                        <div>
+                            <a href="https://github.com/player01osu/yuri-web"
+                                class="link"
+                                style="text-decoration: none;">
+                                    {"GITHUB"}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </>
+        };
+
         html! {
             <>
                 <button style="margin-left: 200px; margin-top: 200px;" {onclick}> {"Click to hide"} </button>
@@ -94,21 +122,7 @@ impl Component for Sidebar {
                                 </div>
                             </div>
                         <center>
-                            <div class="links">
-                                <Links link="/" text="HOME" route={Route::Home}/>
-                                <Links link="/gallery" text="GALLERY" route={Route::Gallery}/>
-                                <Links link="/tags" text="TAGS" route={Route::Tags}/>
-                                <Links link="/about" text="ABOUT" route={Route::About}/>
-                                <div class="indiv">
-                                    <div>
-                                        <a href="https://github.com/player01osu/yuri-web"
-                                            class="link"
-                                            style="text-decoration: none;">
-                                                {"GITHUB"}
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            { links }
                         </center>
                     </div>
                 </div>

@@ -1,9 +1,14 @@
 use super::components::container::Container;
-use super::components::header::Header;
 use super::components::posts::Posts;
+use super::components::template::Template;
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, Component, Context, Html, NodeRef, Properties};
+use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Body {
+    pub callback: Callback<GalleryMsg>,
+}
 
 #[derive(Clone, PartialEq)]
 pub enum Sort {
@@ -17,7 +22,6 @@ pub struct Gallery {
     wheel_position: f64,
     node_ref: NodeRef,
 }
-
 #[derive(Properties, PartialEq)]
 pub struct GalleryProps {
     pub sort: Sort,
@@ -59,13 +63,15 @@ impl Component for Gallery {
                 .scroll_height();
             GalleryMsg::LoadMore(page_height.into(), scroll_y)
         });
+
         let node_ref = self.node_ref.clone();
         let sort = ctx.props().sort.clone();
         let show_posts = html! {
             <Posts {sort}
                 document_height={self.document_height}
                 wheel_position={self.wheel_position}
-                gallery_node_ref={node_ref}/>
+                gallery_node_ref={node_ref}
+            />
         };
         let node_ref = self.node_ref.clone();
 
@@ -73,13 +79,12 @@ impl Component for Gallery {
             <>
                 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
                 <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-                <body style="background-color: black;">
-                    <Header/>
+                <Template>
                     <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
                         <Container/>
                         { show_posts }
                     </div>
-                </body>
+                </Template>
             </>
         }
     }

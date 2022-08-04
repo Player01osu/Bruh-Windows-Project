@@ -335,11 +335,6 @@ impl Component for Posts {
             }
             ImageMessage::LoadPage => {
                 self.images.clear();
-                //let sort = match ctx.link().location().unwrap().pathname().as_str() {
-                //     "new" => Sort::New,
-                //     "views" => Sort::Views,
-                //     "top" => Sort::Top,
-                //};
                 let sort = ctx
                     .link()
                     .location()

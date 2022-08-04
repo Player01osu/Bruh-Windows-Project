@@ -1,6 +1,6 @@
+use super::fileupload::FileUpload;
 use super::scrolltop::ScrollTop;
 use super::sidebar::Sidebar;
-use super::fileupload::FileUpload;
 use yew::{html, Component, Context, Html};
 
 pub struct Container;
