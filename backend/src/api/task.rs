@@ -13,6 +13,27 @@ use uuid::Uuid;
 use super::mongo::MongodbDatabase;
 use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PostImageRequest {
+    title: String,
+    author: String,
+    op: String,
+    source: Source,
+    resolution: Resolution,
+    time: u64,
+    tags: Option<Vec<String>>,
+    file_name: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DeleteImageRequest {
+    oid: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LikeImageRequest {
+    oid: String,
+}
 #[derive(Deserialize, Serialize)]
 pub struct TaskIndentifier {
     task_global_id: String,
@@ -43,18 +64,22 @@ impl Gallery {
 
         let find_options = match sort.as_str() {
             "new" => FindOptions::builder()
+                .skip(u64::from(self.amount - 10))
                 .limit(i64::from(self.amount))
                 .sort(doc! {"time":-1})
                 .build(),
             "top" => FindOptions::builder()
+                .skip(u64::from(self.amount - 10))
                 .limit(i64::from(self.amount))
                 .sort(doc! {"stats.likes":-1, "time":-1})
                 .build(),
             "views" => FindOptions::builder()
+                .skip(u64::from(self.amount - 10))
                 .limit(i64::from(self.amount))
                 .sort(doc! {"stats.views":-1, "time":-1})
                 .build(),
             _ => FindOptions::builder()
+                .skip(u64::from(self.amount - 10))
                 .limit(i64::from(self.amount))
                 .sort(doc! {"time":-1})
                 .build(),
@@ -92,34 +117,11 @@ pub async fn view_posts(
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct PostImageRequest {
-    title: String,
-    author: String,
-    op: String,
-    source: Source,
-    resolution: Resolution,
-    time: u64,
-    tags: Option<Vec<String>>,
-    file_name: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct DeleteImageRequest {
-    oid: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct LikeImageRequest {
-    oid: String,
-}
-
 #[post("/post_image")]
 pub async fn post_image(
     database: Data<mongodb::Collection<YuriPosts>>,
     mut payload: Multipart,
 ) -> actix_web::Result<impl Responder> {
-    let database: mongodb::Collection<YuriPosts> = database.clone_with_type();
     let utc_now = chrono::Utc::now();
     let time = utc_now.timestamp() as u64;
 
