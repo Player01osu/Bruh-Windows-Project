@@ -14,6 +14,8 @@
   - [x] Posting images
 - [ ] Static page caching
 - [ ] Login
+- [ ] Admin
+- [ ] Redis for post caching
 - [ ] Capita based posting
 - [ ] Proper error handling (it is absolutely atrocious right now)
 - [x] Image posting
@@ -21,6 +23,9 @@
 # Frontend
 
 - [ ] Login page
+- [ ] Deleting based off of
+  - [ ] User session
+  - [ ] Is admin
 - [ ] Capita
 - [ ] Comment section
 - [x] Begin Yew project file
