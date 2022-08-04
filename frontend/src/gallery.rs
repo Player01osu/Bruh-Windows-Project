@@ -1,6 +1,4 @@
-use super::components::container::Container;
-use super::components::posts::Posts;
-use super::components::template::Template;
+use super::components::{container::Container, posts::Posts, template::Template};
 use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
