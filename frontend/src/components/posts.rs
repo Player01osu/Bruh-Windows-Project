@@ -305,11 +305,12 @@ impl Posts {
         if sort.is_empty() {
             sort = "new".to_string();
         }
-        //let query = ctx.link().location().unwrap().query::<TestQuery>().unwrap();
+        let query = link.location().unwrap().query::<TestQuery>().unwrap();
         //console_log!("{:?}", query);
         link.send_future(async move {
+            let query = query.query;
             let fetched_images: Vec<ImageRequest> =
-                Request::get(format! {"/api/view-posts/1/{}", sort}.as_str())
+                Request::get(format! {"/api/view-posts/1/{sort}/{query}"}.as_str())
                     .send()
                     .await
                     .unwrap()
@@ -323,7 +324,7 @@ impl Posts {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TestQuery {
-    #[serde(rename(serialize = "q", deserialize = "query"))]
+    #[serde(rename = "q", default)]
     query: String,
 }
 
