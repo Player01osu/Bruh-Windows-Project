@@ -80,7 +80,16 @@ impl Component for Sidebar {
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
         html! {
             <>
-                <button style="position: fixed; left: 40px; top: 450px; z-index: 100;" {onclick}> {"hide"} </button>
+                <button style="
+                position: sticky;
+                top: 0;
+                background-color: #c054c2;
+                opacity: 0.5;
+                width: 120px;
+                font-size: 15px;
+                margin-left:120px;
+                border: none; 
+                z-index:100;" {onclick}> {"hide"} </button>
 
                 <div class="navall" style={format!("{}", &self.style)}>
                     <div class="nav">

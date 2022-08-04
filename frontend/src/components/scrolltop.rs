@@ -29,13 +29,17 @@ impl Component for ScrollTop {
 
         html! {
             <>
-                <div>
-                    <button style="position: fixed; background-color: #c054c2;
+                <div style="margin-top: 4px; position: sticky; float: right; top: 0; margin-right: 250px; width: 120px;">
+                    <button style="
+                    position: sticky;
+                    top: 0;
+                    background-color: #c054c2;
                     opacity: 0.5;
                     color: 9a9996;
                     width: 120px;
                     font-size: 15px;
-                    border: none; top: 85px; right: 140px; z-index: 69420;" {onclick}>
+                    border: none; "
+                    {onclick}>
                         {"Up"}
                     </button>
                 </div>

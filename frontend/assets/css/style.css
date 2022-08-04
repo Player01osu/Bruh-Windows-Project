@@ -119,16 +119,17 @@
     position: relative;
    /* left: 39.5vw;*/
    left: 50%;
-   transform: translateX(-40%);
+   transform: translateX(-50%);
     width: 800px;
+    /* width: 42vw; */
     /* max-width: 900px; */
-    margin-top: 100px;
+    margin-top: 85px;
+    
     
 }
 .image-indiv {
 
-    /* width: 42vw; */
-
+    
 }
 .image-indiv > img {
   
@@ -140,10 +141,12 @@
     margin-left: auto;
     margin-right: auto;
     /*max-width: 99.9%;*/
-    /* width: 25vw; */
+    width: 30vw;
     /* max-height: 900vh; */
-    width: 510px;
-    margin-bottom: 15px;
+    /* width: 510px; */
+    margin-bottom: 7.5px;
+    margin-top: 7.5px;
+    
     
   /*  border: 1px solid rgba(140, 34, 119);*/
   box-shadow: 0px 0px 15px rgb(67, 40, 107) ;
@@ -156,16 +159,18 @@
 .yuri-img-clicked {
  
     /* left: -50%; */
-    transform: translateX(-22%);
+    transform: translateX(-18%);
+
   /* margin-left: -270px;
   margin-right: auto; */
   /*max-width: 99.9%;*/
-  /* max-width: 1200px; */
-    width: 50vw;
-    /* width: 1200px; */
-    /* width: 30cm; */
+  max-width: 1150px;
+  /* min-width: 1050px; */
+    /* width: 55vw; */
+    /* width: 1000px; */
+    /* width: 60em; */
     margin-right: 43vw;
-   
+    box-shadow: 0px 0px 15px rgb(67, 40, 107) ;
  
 }
 .img-nav {
@@ -180,6 +185,7 @@
 .info {
     position: relative;
     word-wrap: break-word;
+    margin-top: 7.5px;
     /*
     margin-top: 50px;
     margin-bottom: 50px; */
@@ -198,6 +204,7 @@
     text-shadow:0px 0px 10px rgb(203, 24, 66);
 }
 .user-inter {
+    margin-top: 7.5px;
     margin-right: 15px;
     opacity: .8;
     position:relative;
@@ -296,18 +303,20 @@
     opacity: 0.5;
     color: 9a9996;
     width: 120px;
-
+    
     font-size: 15px;
     border: none;
     
 }
 
 .sort-buttons {
-    position: fixed;
+    position: sticky;
 
     width: 120px;
-    right: 10px;
-    top:85px;
+    right: 6px;
+    float: right;
+    
+    top:0;
     z-index: 100;
     /* transform: translateX(-30% ); */
     /* display: inline-block; */
