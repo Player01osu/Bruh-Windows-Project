@@ -9,6 +9,7 @@ edition = "2021"
 base64 = "0.13.0"
 chrono = "0.4.19"
 common = { path = "../common" }
+derive_more = "^0.99.17"
 futures = "0.3.21"
 gloo-file = "0.2.3"
 gloo-utils = "0.1.4"
