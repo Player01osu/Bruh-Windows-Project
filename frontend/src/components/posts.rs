@@ -225,6 +225,7 @@ impl Image {
 impl Posts {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
         html! {
+            
             <div class="image-indiv">
                 <div class="user-inter">
                         <button type="button"
@@ -411,11 +412,12 @@ impl Component for Posts {
             .collect::<Html>();
 
         html! {
-            <>
-                <SortButtons/>
-                <div class={ "images" }>
-                    { posts }
-                </div>
+            <>  <center>
+                    <SortButtons/>
+                    <div class={ "images" }>
+                        { posts }
+                    </div>
+                </center>
             </>
         }
     }

@@ -84,7 +84,7 @@ impl Component for Sidebar {
                 position: sticky;
                 top: 0;
                 background-color: #c054c2;
-                opacity: 0.5;
+                opacity: 0;
                 width: 120px;
                 font-size: 15px;
                 margin-left:120px;

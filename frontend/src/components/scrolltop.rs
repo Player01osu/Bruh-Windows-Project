@@ -34,7 +34,7 @@ impl Component for ScrollTop {
                     position: sticky;
                     top: 0;
                     background-color: #c054c2;
-                    opacity: 0.5;
+                    opacity: 0;
                     color: 9a9996;
                     width: 120px;
                     font-size: 15px;
