@@ -1,6 +1,7 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
 use mongodb::bson::{doc, serde_helpers, Document};
+use mongodb::IndexModel;
 use mongodb::{
     options::{ClientOptions, FindOptions},
     Client,
@@ -25,7 +26,25 @@ pub struct MongodbDatabase {
 impl MongodbDatabase {
     pub fn new(collection: Data<mongodb::Collection<YuriPosts>>) -> MongodbDatabase {
         let mongodb_collection = MongodbDatabase { collection };
+
         mongodb_collection
+    }
+
+    pub async fn create_cursor(collection: &mongodb::Collection<YuriPosts>) {
+        let index_model = IndexModel::builder()
+            .keys(doc! {
+                "title": "text",
+                "author": "text",
+                "op": "text",
+                "tags": "text",
+                "source": "text"
+            })
+            .build();
+
+        match collection.create_index(index_model, None).await {
+            Ok(_) => (),
+            Err(e) => eprintln!("{e}"),
+        };
     }
 
     /// Generates a cursor for the collection, iterating through it and
@@ -34,10 +53,8 @@ impl MongodbDatabase {
         &self,
         filter: Option<Document>,
         find_options: Option<FindOptions>,
-        amount: u16,
     ) -> Vec<Document> {
         let database: mongodb::Collection<Document> = self.collection.clone_with_type();
-        let mut number: u16 = 0;
         let mut cursor = database
             .find(filter, find_options)
             .await
@@ -51,10 +68,6 @@ impl MongodbDatabase {
         {
             println!("path: {}", yuri_posts);
             paths.push(yuri_posts);
-            number += 1;
-            if number > amount {
-                break;
-            }
         }
         paths
     }
