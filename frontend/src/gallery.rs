@@ -20,17 +20,13 @@ pub struct Gallery {
     wheel_position: f64,
     node_ref: NodeRef,
 }
-#[derive(Properties, PartialEq)]
-pub struct GalleryProps {
-    pub sort: Sort,
-}
 
 pub enum GalleryMsg {
     LoadMore(f64, f64),
 }
 
 impl Component for Gallery {
-    type Properties = GalleryProps;
+    type Properties = ();
     type Message = GalleryMsg;
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -63,9 +59,8 @@ impl Component for Gallery {
         });
 
         let node_ref = self.node_ref.clone();
-        let sort = ctx.props().sort.clone();
         let show_posts = html! {
-            <Posts {sort}
+            <Posts
                 document_height={self.document_height}
                 wheel_position={self.wheel_position}
                 gallery_node_ref={node_ref}

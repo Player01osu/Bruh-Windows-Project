@@ -40,7 +40,7 @@ pub fn switch(route: &Route) -> Html {
         Route::GalleryRouter => html! {
             <Switch<GalleryRoute> render={Switch::render(gallery_switch)} />
         },
-        Route::Gallery => html! { <Gallery sort={Sort::New}/> },
+        Route::Gallery => html! { <Gallery/> },
         Route::About => html! { <About/> },
         Route::Tags => html! { <Tags/> },
         Route::NotFound => html! { <NotFound/> },
@@ -49,9 +49,9 @@ pub fn switch(route: &Route) -> Html {
 
 pub fn gallery_switch(route: &GalleryRoute) -> Html {
     match route {
-        GalleryRoute::New => html! { <Gallery sort={Sort::New}/> },
-        GalleryRoute::Top => html! { <Gallery sort={Sort::Top}/> },
-        GalleryRoute::Views => html! { <Gallery sort={Sort::Views}/> },
+        GalleryRoute::New => html! { <Gallery/> },
+        GalleryRoute::Top => html! { <Gallery/> },
+        GalleryRoute::Views => html! { <Gallery/> },
         GalleryRoute::NotFound => html! {
             <Redirect<Route> to={Route::NotFound}/>
         },
