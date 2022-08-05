@@ -1,17 +1,25 @@
+use super::mongo::MongodbDatabase;
+use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
+
 use actix_multipart::Multipart;
-use actix_web::http::StatusCode;
-use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
-use actix_web::{web, Error, HttpResponse, HttpResponseBuilder, Responder};
+use actix_web::{
+    delete, get,
+    http::StatusCode,
+    post, put, web,
+    web::Json,
+    web::Path,
+    web::{Data, Query},
+    Error, HttpResponse, HttpResponseBuilder, Responder,
+};
 use bson::oid::ObjectId;
 use futures_util::TryStreamExt as _;
-use mongodb::bson::Document;
-use mongodb::{bson::doc, options::FindOptions};
+use mongodb::{
+    bson::{doc, Document},
+    options::FindOptions,
+};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use uuid::Uuid;
-
-use super::mongo::MongodbDatabase;
-use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PostImageRequest {
@@ -58,34 +66,59 @@ impl Gallery {
     async fn gen_gallery(
         &mut self,
         database: Data<mongodb::Collection<YuriPosts>>,
-        sort: String,
+        sort: &String,
+        query: &String,
     ) -> &mut Self {
         let database = MongodbDatabase::new(database);
 
-        let find_options = match sort.as_str() {
-            "new" => FindOptions::builder()
-                .skip(u64::from(self.amount - 10))
-                .limit(i64::from(self.amount))
-                .sort(doc! {"time":-1})
-                .build(),
-            "top" => FindOptions::builder()
-                .skip(u64::from(self.amount - 10))
-                .limit(i64::from(self.amount))
-                .sort(doc! {"stats.likes":-1, "time":-1})
-                .build(),
-            "views" => FindOptions::builder()
-                .skip(u64::from(self.amount - 10))
-                .limit(i64::from(self.amount))
-                .sort(doc! {"stats.views":-1, "time":-1})
-                .build(),
-            _ => FindOptions::builder()
-                .skip(u64::from(self.amount - 10))
-                .limit(i64::from(self.amount))
-                .sort(doc! {"time":-1})
-                .build(),
-        };
+        let paths: Vec<Document> = match !query.is_empty() {
+            true => {
+                let pipeline = vec![doc! {
+                     "$match": { "$text": { "$search": query } }
+                }];
 
-        let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
+                let mut cursor = database.collection.aggregate(pipeline, None).await.unwrap();
+                let mut documents = Vec::default();
+
+                while let Some(document) = cursor.try_next().await.unwrap() {
+                    println!("{:?}", document);
+                    documents.push(document)
+                }
+
+                documents
+            }
+
+            false => {
+                // FIXME: This kinda poo
+                let find_options = match sort.as_str() {
+                    "new" => FindOptions::builder()
+                        .skip(u64::from(self.amount - 10))
+                        .limit(i64::from(self.amount))
+                        .sort(doc! {"time":-1})
+                        .build(),
+
+                    "top" => FindOptions::builder()
+                        .skip(u64::from(self.amount - 10))
+                        .limit(i64::from(self.amount))
+                        .sort(doc! {"stats.likes":-1, "time":-1})
+                        .build(),
+
+                    "views" => FindOptions::builder()
+                        .skip(u64::from(self.amount - 10))
+                        .limit(i64::from(self.amount))
+                        .sort(doc! {"stats.views":-1, "time":-1})
+                        .build(),
+
+                    _ => FindOptions::builder()
+                        .skip(u64::from(self.amount - 10))
+                        .limit(i64::from(self.amount))
+                        .sort(doc! {"time":-1})
+                        .build(),
+                };
+
+                database.find(None, Some(find_options)).await
+            }
+        };
 
         match !paths.is_empty() {
             true => {
@@ -100,16 +133,31 @@ impl Gallery {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ViewPostsPath {
+    page_number: u16,
+    sort: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SearchQuery {
+    #[serde(default)]
+    query: String,
+}
+
 #[get("/view-posts/{page_number}/{sort}")]
 pub async fn view_posts(
-    path: Path<(u16, String)>,
+    path: Path<ViewPostsPath>,
+    query: Query<SearchQuery>,
     database: Data<mongodb::Collection<YuriPosts>>,
 ) -> Json<Vec<Document>> {
-    let (page_number, sort) = path.into_inner();
+    let page_number = path.page_number;
+    let sort = &path.sort;
+    let query = &query.query;
 
     let mut generated = Gallery::new(page_number * 10);
 
-    generated.gen_gallery(database, sort).await;
+    generated.gen_gallery(database, &sort, &query).await;
 
     match generated.show {
         Some(documents) => documents,
@@ -201,7 +249,7 @@ pub async fn post_image(
             }
             "image" => {
                 let mut filepath = format!("./assets/posts/{author}-{time}-{filename}");
-                filepath.retain(|c| c != '?' );
+                filepath.retain(|c| c != '?');
                 path = filepath.clone();
 
                 let mut f = web::block(|| std::fs::File::create(filepath)).await??;
@@ -268,7 +316,7 @@ pub async fn delete_post(
         .expect("BRO WHAT DA HECK")
         .expect("Unable to find post from ObjectId");
 
-    std::fs::remove_file(post_struct.path).unwrap_or(println!("Unable to remove file"));
+    std::fs::remove_file(post_struct.path).unwrap_or(eprintln!("Unable to remove file"));
 
     database.delete_one(filter, None).await.expect("SHITTTT");
 
