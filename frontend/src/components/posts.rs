@@ -1,11 +1,9 @@
-use crate::gallery::Sort;
-use crate::routes::GalleryRoute;
-use std::rc::Rc;
+use super::sortbuttons::SortButtons;
 
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use web_sys::Element;
-use yew::html::{IntoPropValue, Scope};
+use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef, Properties};
 use yew_router::prelude::*;
 
@@ -13,144 +11,6 @@ use common::mongodb::structs::{
     Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Source,
 };
 use yew_router::scope_ext::HistoryHandle;
-
-
-#[derive(Clone, PartialEq)]
-pub struct SortStruct {
-    link: GalleryRoute,
-    text: Rc<String>,
-}
-
-pub struct SortButtons {
-    _listener: HistoryHandle,
-    sort_current: String,
-    sort_current_display: String,
-    sort_one: SortStruct,
-    sort_two: SortStruct,
-}
-
-impl Default for SortStruct {
-    fn default() -> Self {
-        Self {
-            link: GalleryRoute::New,
-            text: Rc::new("New".to_string()),
-        }
-    }
-}
-
-pub enum SortButtonsMessage {
-    CreateButtons,
-}
-
-impl SortButtons {
-    fn populate_buttons(&mut self, lookup_num: usize) {
-        let lookup_buttons = [
-            (Rc::new("New".to_string()), GalleryRoute::New),
-            (Rc::new("Top".to_string()), GalleryRoute::Top),
-            (Rc::new("Views".to_string()), GalleryRoute::Views),
-        ];
-
-        let (text, _) = lookup_buttons.get(lookup_num).unwrap();
-        self.sort_current_display = text.to_string();
-        let lookup_buttons = lookup_buttons.clone();
-        let (text, link) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
-
-        self.sort_one.link = link.to_owned();
-        self.sort_one.text = text.clone();
-
-        let lookup_buttons = lookup_buttons.clone();
-        let (text, link) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-        self.sort_two.link = link.to_owned();
-        self.sort_two.text = text.clone();
-    }
-}
-
-// FIXME: This is bad
-impl Component for SortButtons {
-    type Properties = ();
-    type Message = SortButtonsMessage;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let listener = ctx
-            .link()
-            .add_history_listener(ctx.link().callback(|_| SortButtonsMessage::CreateButtons))
-            .unwrap();
-
-        Self {
-            _listener: listener,
-            sort_current: String::default(),
-            sort_current_display: String::from("New"),
-            sort_one: Default::default(),
-            sort_two: Default::default(),
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            SortButtonsMessage::CreateButtons => {
-                self.sort_current = ctx
-                    .link()
-                    .location()
-                    .unwrap()
-                    .pathname()
-                    .split_once("gallery")
-                    .unwrap_or(("",""))
-                    .1
-                    .to_string();
-                match self.sort_current.as_str() {
-                    "/new" => {
-                        self.populate_buttons(0 as usize);
-                    }
-                    "/top" => {
-                        self.populate_buttons(1 as usize);
-                    }
-                    "/views" => {
-                        self.populate_buttons(2 as usize);
-                    }
-                    _ => {
-                        self.populate_buttons(0 as usize);
-                    }
-                }
-                true
-            }
-        }
-    }
-
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        let current_sort_display = self.sort_current_display.clone();
-        let sort_one = self.sort_one.clone();
-        let sort_two = self.sort_two.clone();
-
-        html! {
-            <>
-                <div class="sort-buttons">
-                    <button class="dropbtn">{current_sort_display}</button>
-                    <div class="sort-button-content">
-                        <Link<GalleryRoute> to={sort_one.link} classes="link">{ sort_one.text }</Link<GalleryRoute>>
-                        <Link<GalleryRoute> to={sort_two.link} classes="link">{ sort_two.text }</Link<GalleryRoute>>
-                    </div>
-                </div>
-            </>
-        }
-    }
-
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        self.sort_current = ctx
-            .link()
-            .location()
-            .unwrap()
-            .pathname()
-            .split_once("gallery")
-            .unwrap()
-            .1
-            .to_string();
-        match self.sort_one.eq(&self.sort_two) {
-            true => ctx.link().send_message(SortButtonsMessage::CreateButtons),
-            false => (),
-        }
-    }
-}
 
 use wasm_bindgen::prelude::*;
 
@@ -176,7 +36,6 @@ pub enum ImageMessage {
 
 #[derive(PartialEq, Properties)]
 pub struct PostProps {
-    pub sort: Sort,
     pub document_height: f64,
     pub wheel_position: f64,
     pub gallery_node_ref: NodeRef,
@@ -202,11 +61,12 @@ pub struct Image {
 }
 
 pub struct Posts {
-    _listener: HistoryHandle,
+    _history_handle: HistoryHandle,
     images: Vec<Image>,
     page: u16,
-    sort: Sort,
     scroll_bottom_buffer: u16,
+    query: PostQuery,
+    request_builder: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -292,25 +152,28 @@ impl Posts {
         }
     }
 
-    fn retrieve_posts(link: &Scope<Self>) {
+    fn retrieve_posts(&mut self, link: &Scope<Self>) {
         let mut sort = link
             .location()
             .unwrap()
             .pathname()
-            .split_once("gallery")
-            .unwrap_or(("","/new"))
+            .split_once("gallery/")
+            .unwrap_or(("", "new"))
             .1
             .to_string();
         // FIXME: this kinda hacky
         if sort.is_empty() {
             sort = "new".to_string();
         }
-        let query = link.location().unwrap().query::<TestQuery>().unwrap();
-        //console_log!("{:?}", query);
+
+        self.query = link.location().unwrap().query::<PostQuery>().unwrap();
+        // FIXME: Reference count?
+        self.request_builder = format!("{sort}?query={}", self.query.query);
+        let request_builder = self.request_builder.clone();
+
         link.send_future(async move {
-            let query = query.query;
             let fetched_images: Vec<ImageRequest> =
-                Request::get(format! {"/api/view-posts/1/{sort}/{query}"}.as_str())
+                Request::get(format! {"/api/view-posts/1/{request_builder}"}.as_str())
                     .send()
                     .await
                     .unwrap()
@@ -322,8 +185,8 @@ impl Posts {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TestQuery {
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct PostQuery {
     #[serde(rename = "q", default)]
     query: String,
 }
@@ -333,21 +196,23 @@ impl Component for Posts {
     type Properties = PostProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let images: Vec<Image> = Vec::default();
-        Posts::retrieve_posts(ctx.link());
-
-        let listener = ctx
+        let history_listener = ctx
             .link()
             .add_history_listener(ctx.link().callback(|_| ImageMessage::LoadPage))
             .unwrap();
 
-        return Self {
-            _listener: listener,
-            images,
+        let posts = Self {
+            _history_handle: history_listener,
+            images: Vec::default(),
             page: 1,
-            sort: ctx.props().sort.clone(),
             scroll_bottom_buffer: 0,
+            query: PostQuery::default(),
+            request_builder: String::from("new"),
         };
+        // FIXME FIXME bruv why
+        ctx.link().send_message(ImageMessage::LoadPage);
+
+        posts
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -364,11 +229,13 @@ impl Component for Posts {
                 image.toggle_expand(avail_width);
                 true
             }
+
             ImageMessage::LoadPage => {
                 self.images.clear();
-                Posts::retrieve_posts(ctx.link());
+                self.retrieve_posts(ctx.link());
                 true
             }
+
             ImageMessage::QueryImages(fetched_images) => {
                 for image in fetched_images {
                     self.images.push(Image {
@@ -391,15 +258,13 @@ impl Component for Posts {
                 }
                 true
             }
+
             ImageMessage::ShowMore => {
                 match self.scroll_bottom_buffer {
                     0 => {
                         self.page += 1;
-                        let api_request = match self.sort {
-                            Sort::New => format!("/api/view-posts/{}/new", self.page),
-                            Sort::Top => format!("/api/view-posts/{}/top", self.page),
-                            Sort::Views => format!("/api/view-posts/{}/views", self.page),
-                        };
+                        let api_request =
+                            format!("/api/view-posts/{}/{}", self.page, self.request_builder);
                         ctx.link().send_future(async move {
                             // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
                             let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
@@ -423,6 +288,7 @@ impl Component for Posts {
                     }
                 }
             }
+
             ImageMessage::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
 
@@ -466,9 +332,11 @@ impl Component for Posts {
                 };
                 true
             }
+
             ImageMessage::None => false,
         }
     }
+
     fn view(&self, ctx: &Context<Self>) -> Html {
         let posts = self
             .images

@@ -1,5 +1,7 @@
-use crate::Route;
-use yew::{html, Callback, Component, Context, Html, Properties};
+use crate::{routes::GalleryRoute, Route};
+use serde::Serialize;
+use web_sys::{FormData, HtmlFormElement};
+use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
 use yew_router::prelude::*;
 
 use super::template::{Body, TemplateMsg};
@@ -11,6 +13,7 @@ pub struct Sidebar {
 
 pub enum SidebarMsg {
     Toggle,
+    None,
 }
 
 pub enum SidebarVisibility {
@@ -52,6 +55,11 @@ impl Component for Links {
     }
 }
 
+#[derive(Serialize)]
+pub struct QueryStruct {
+    query: String,
+}
+
 impl Component for Sidebar {
     type Properties = ();
     type Message = SidebarMsg;
@@ -81,11 +89,27 @@ impl Component for Sidebar {
                 }
                 true
             }
+            SidebarMsg::None => true,
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let history = ctx.link().clone().history().unwrap();
+
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
+        let onsubmit = {
+            ctx.link().callback(move |event: web_sys::FocusEvent| {
+                event.prevent_default();
+                let form = event.target_unchecked_into::<HtmlFormElement>();
+                let data = FormData::new_with_form(&form).unwrap();
+
+                let query = data.get("q").as_string().expect("Fucking parse this mf");
+                let query = QueryStruct { query };
+
+                history.push_with_query(GalleryRoute::New, query).unwrap();
+                SidebarMsg::None
+            })
+        };
 
         let links = html! {
             <>
@@ -113,8 +137,16 @@ impl Component for Sidebar {
 
                 <div class="navall" style={format!("{}", &self.style)}>
                     <div class="nav">
-                            <form action="" class="search-bar">
-                                <input type="text" class="search" placeholder="search tag or somth" name="q"/>
+                            <form
+                                action=""
+                                class="search-bar"
+                                {onsubmit}
+                            >
+                                <input
+                                    type="text"
+                                    class="search"
+                                    placeholder="search tag or somth"
+                                    name="q"/>
                             </form>
                             <div class="nav-img">
                                 <div>
