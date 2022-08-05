@@ -1,4 +1,4 @@
-use super::gallery::{Gallery, Sort};
+use super::gallery::Gallery;
 use super::{about::About, home::Home, not_found::NotFound, tags::Tags};
 use yew::{html, Html};
 use yew_router::prelude::*;

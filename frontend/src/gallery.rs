@@ -1,18 +1,11 @@
 use super::components::{container::Container, posts::Posts, template::Template};
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
+use yew::{html, Callback, Component, Context, Html, NodeRef};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Body {
     pub callback: Callback<GalleryMsg>,
-}
-
-#[derive(Clone, PartialEq)]
-pub enum Sort {
-    New,
-    Top,
-    Views,
 }
 
 pub struct Gallery {

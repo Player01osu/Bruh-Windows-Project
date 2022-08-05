@@ -4,7 +4,7 @@ use image::io::Reader;
 use reqwest::multipart::Form;
 use reqwest::{multipart, Client};
 use std::collections::HashMap;
-use web_sys::{console, DragEvent, Event, FileList, FormData, HtmlFormElement, HtmlInputElement};
+use web_sys::{DragEvent, Event, FileList, FormData, HtmlFormElement, HtmlInputElement};
 use yew::{html, Callback, Component, Context, Html, TargetCast};
 
 #[derive(Debug, Clone)]
