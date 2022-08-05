@@ -1,6 +1,6 @@
-use super::components::posts::Posts;
 use super::components::container::Container;
 use super::components::header::Header;
+use super::components::posts::Posts;
 use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Component, Context, Html, Properties};

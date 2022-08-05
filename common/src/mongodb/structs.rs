@@ -111,10 +111,7 @@ impl Default for Source {
 
 impl Default for PostStats {
     fn default() -> Self {
-        Self {
-            likes: 0,
-            views: 0,
-        }
+        Self { likes: 0, views: 0 }
     }
 }
 

@@ -1,7 +1,5 @@
 use super::header::Header;
-use yew::{
-    html, Callback, Children, Component, Context, ContextProvider, Html, Properties,
-};
+use yew::{html, Callback, Children, Component, Context, ContextProvider, Html, Properties};
 
 pub struct Template {
     class: String,
