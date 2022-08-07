@@ -29,9 +29,18 @@ impl Component for ScrollTop {
 
         html! {
             <>
-                <div>
-                    <button style="position: absolute; margin-left: 1200px; margin-top: 400px;" {onclick}>
-                        {"Click to scroll to top"}
+                <div style="margin-top: 4px; position: sticky; float: right; top: 0; margin-right: 250px; width: 120px;">
+                    <button style="
+                    position: sticky;
+                    top: 0;
+                    background-color: #c054c2;
+                    opacity: 0;
+                    color: 9a9996;
+                    width: 120px;
+                    font-size: 15px;
+                    border: none; "
+                    {onclick}>
+                        {"Up"}
                     </button>
                 </div>
             </>

@@ -350,11 +350,12 @@ impl Component for Posts {
             .collect::<Html>();
 
         html! {
-            <>
-                <SortButtons/>
-                <div class={ "images" }>
-                    { posts }
-                </div>
+            <>  <center>
+                    <SortButtons/>
+                    <div class={ "images" }>
+                        { posts }
+                    </div>
+                </center>
             </>
         }
     }
