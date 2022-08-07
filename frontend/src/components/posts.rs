@@ -188,7 +188,7 @@ impl Posts {
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct PostQuery {
     #[serde(rename = "q", default)]
-    query: String,
+    pub query: String,
 }
 
 impl Component for Posts {

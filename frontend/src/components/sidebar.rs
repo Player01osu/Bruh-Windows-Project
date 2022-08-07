@@ -1,10 +1,9 @@
 use crate::{routes::GalleryRoute, Route};
-use serde::Serialize;
 use web_sys::{FormData, HtmlFormElement};
 use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
 use yew_router::prelude::*;
 
-use super::template::{Body, TemplateMsg};
+use super::{template::{Body, TemplateMsg}, posts::PostQuery};
 
 pub struct Sidebar {
     visibility: SidebarVisibility,
@@ -55,11 +54,6 @@ impl Component for Links {
     }
 }
 
-#[derive(Serialize)]
-pub struct QueryStruct {
-    query: String,
-}
-
 impl Component for Sidebar {
     type Properties = ();
     type Message = SidebarMsg;
@@ -104,7 +98,9 @@ impl Component for Sidebar {
                 let data = FormData::new_with_form(&form).unwrap();
 
                 let query = data.get("q").as_string().expect("Fucking parse this mf");
-                let query = QueryStruct { query };
+                let query = PostQuery {
+                    query,
+                };
 
                 history.push_with_query(GalleryRoute::New, query).unwrap();
                 SidebarMsg::None
