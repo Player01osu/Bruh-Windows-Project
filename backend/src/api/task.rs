@@ -70,55 +70,31 @@ impl Gallery {
         query: &String,
     ) -> &mut Self {
         let database = MongodbDatabase::new(database);
-
-        let paths: Vec<Document> = match !query.is_empty() {
-            true => {
-                let pipeline = vec![doc! {
-                     "$match": { "$text": { "$search": query } }
-                }];
-
-                let mut cursor = database.collection.aggregate(pipeline, None).await.unwrap();
-                let mut documents = Vec::default();
-
-                while let Some(document) = cursor.try_next().await.unwrap() {
-                    println!("{:?}", document);
-                    documents.push(document)
-                }
-
-                documents
-            }
-
-            false => {
-                // FIXME: This kinda poo
-                let find_options = match sort.as_str() {
-                    "new" => FindOptions::builder()
-                        .skip(u64::from(self.amount - 10))
-                        .limit(i64::from(self.amount))
-                        .sort(doc! {"time":-1})
-                        .build(),
-
-                    "top" => FindOptions::builder()
-                        .skip(u64::from(self.amount - 10))
-                        .limit(i64::from(self.amount))
-                        .sort(doc! {"stats.likes":-1, "time":-1})
-                        .build(),
-
-                    "views" => FindOptions::builder()
-                        .skip(u64::from(self.amount - 10))
-                        .limit(i64::from(self.amount))
-                        .sort(doc! {"stats.views":-1, "time":-1})
-                        .build(),
-
-                    _ => FindOptions::builder()
-                        .skip(u64::from(self.amount - 10))
-                        .limit(i64::from(self.amount))
-                        .sort(doc! {"time":-1})
-                        .build(),
-                };
-
-                database.find(None, Some(find_options)).await
-            }
+        let sort = match sort.as_str() {
+            "new" => String::from("time"),
+            "top" => String::from("stats.likes"),
+            "views" => String::from("stats.views"),
+            _ => String::from("time"),
         };
+        let skip_amount = u32::from(self.amount - 10);
+        let limit = i64::from(self.amount);
+
+        let filter = Some(doc!{
+            "$or": [
+                { "title": { "$regex": query, "$options": "i" } },
+                { "author": { "$regex": query, "$options": "i" } },
+                { "op": { "$regex": query, "$options": "i" } },
+                { "tags": { "$regex": query, "$options": "i" } },
+                { "material": { "$regex": query, "$options": "i" } }
+            ]
+        });
+        let find_options = Some(FindOptions::builder()
+            .skip(u64::from(skip_amount))
+            .limit(limit)
+            .sort(doc! {sort: -1, "time": -1})
+            .build());
+
+        let paths = database.find(filter, find_options).await;
 
         match !paths.is_empty() {
             true => {
