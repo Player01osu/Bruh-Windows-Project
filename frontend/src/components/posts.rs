@@ -142,7 +142,7 @@ impl Posts {
             <div class="image-indiv">
                 { buttons }
                 <img alt={format!("{} {}", image.author, image.title)}
-                    src={format!(".{}", image.path)}
+                    src={format!("/{}", image.path)}
                     class={format!("{}", image.class)}
                     loading="lazy"
                     onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}

@@ -6,6 +6,7 @@ use actix_web::middleware::{self, Logger};
 use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
+use actix_web_lab::web::spa;
 use routing::routes;
 use std::path::PathBuf;
 
@@ -59,6 +60,13 @@ pub async fn run() -> std::io::Result<()> {
                     .service(delete_post)
                     .service(like_post)
                     .service(unlike_post),
+            )
+            .service(
+                spa()
+                .index_file("./dist/index.html")
+                .static_resources_mount("/")
+                .static_resources_location("./dist")
+                .finish()
             )
             .default_service(web::route().to(router));
 
