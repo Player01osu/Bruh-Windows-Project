@@ -1,6 +1,7 @@
 mod api;
 mod routing;
 
+use actix_cors::Cors;
 use actix_web::middleware::{self, Logger};
 use actix_web::web::Bytes;
 use actix_web::web::Data;
@@ -8,13 +9,7 @@ use actix_web::{web, App, HttpServer};
 use routing::routes;
 use std::path::PathBuf;
 
-use api::task::{
-    delete_post,
-    post_image,
-    view_posts,
-    like_post,
-    unlike_post,
-    };
+use api::task::{delete_post, like_post, post_image, unlike_post, view_posts};
 
 use api::mongo::MongodbDatabase;
 use routes::*;
@@ -41,12 +36,15 @@ pub async fn run() -> std::io::Result<()> {
     ROUTEMAP.insert("{{404}}".into(), route_handle);
 
     let database = MongodbDatabase::mongo_connect().await;
+    MongodbDatabase::create_cursor(&database).await;
 
     HttpServer::new(move || {
         let database_data = Data::new(database.clone());
         let logger = Logger::default();
+        let cors = Cors::permissive(); // FIXME: uhhhhhhhh, change this
 
         let app_instance = App::new()
+            .wrap(cors)
             .wrap(logger)
             .wrap(middleware::NormalizePath::new(
                 middleware::TrailingSlash::Trim,
@@ -60,7 +58,7 @@ pub async fn run() -> std::io::Result<()> {
                     .service(post_image)
                     .service(delete_post)
                     .service(like_post)
-                    .service(unlike_post)
+                    .service(unlike_post),
             )
             .default_service(web::route().to(router));
 

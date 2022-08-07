@@ -1,25 +1,55 @@
-use actix_web::http::StatusCode;
-use actix_web::web::JsonBody;
-use actix_web::{delete, get, post, put, web::Data, web::Json, web::Path};
-use actix_web::{HttpResponse, HttpResponseBuilder};
+use super::mongo::MongodbDatabase;
+use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
 
+use actix_multipart::Multipart;
+use actix_web::{
+    delete, get,
+    http::StatusCode,
+    post, put, web,
+    web::Json,
+    web::Path,
+    web::{Data, Query},
+    Error, HttpResponse, HttpResponseBuilder, Responder,
+};
+use bson::oid::ObjectId;
+use futures_util::TryStreamExt as _;
+use mongodb::{
+    bson::{doc, Document},
+    options::FindOptions,
+};
 use serde::{Deserialize, Serialize};
+use std::io::Write;
+use uuid::Uuid;
 
-use mongodb::bson::Document;
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PostImageRequest {
+    title: String,
+    author: String,
+    op: String,
+    source: Source,
+    resolution: Resolution,
+    time: u64,
+    tags: Option<Vec<String>>,
+    file_name: String,
+}
 
-use super::mongo::{self, MongodbCollection, MongodbDatabase};
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DeleteImageRequest {
+    oid: String,
+}
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LikeImageRequest {
+    oid: String,
+}
 #[derive(Deserialize, Serialize)]
 pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use common::mongodb::structs::{YuriPosts, PostStats, Comment};
-use mongodb::{bson::doc, options::FindOptions};
-
 pub struct Gallery {
     show: Option<Json<Vec<Document>>>,
-    search_filters: Option<String>,
+    search_filters: Option<Vec<String>>,
     amount: u16,
 }
 
@@ -33,110 +63,217 @@ impl Gallery {
         generated
     }
 
-    async fn gen_gallery(&mut self, database: Data<mongodb::Collection<YuriPosts>>, sort: String) -> &mut Self {
-        // >query mongodb for 'yuriPosts'
-
+    async fn gen_gallery(
+        &mut self,
+        database: Data<mongodb::Collection<YuriPosts>>,
+        sort: &String,
+        query: &String,
+    ) -> &mut Self {
         let database = MongodbDatabase::new(database);
-        //let filter = doc! { "op": "Player01" };
-
-        let find_options = match sort.as_str() {
-            "new" => FindOptions::builder()
-                .limit(i64::from(self.amount))
-                .sort( doc! {"time":-1})
-                .build(),
-            "top" => FindOptions::builder()
-                .limit(i64::from(self.amount))
-                .sort( doc! {"stats.likes":-1})
-                .build(),
-            "views" => FindOptions::builder()
-                .limit(i64::from(self.amount))
-                .sort( doc! {"stats.views":-1})
-                .build(),
-            _ => FindOptions::builder()
-                .limit(i64::from(self.amount))
-                .sort( doc! {"time":-1})
-                .build()
+        let sort = match sort.as_str() {
+            "new" => String::from("time"),
+            "top" => String::from("stats.likes"),
+            "views" => String::from("stats.views"),
+            _ => String::from("time"),
         };
+        let skip_amount = u32::from(self.amount - 10);
+        let limit = i64::from(self.amount);
 
-        let paths: Vec<Document> = database.find(None, Some(find_options), self.amount).await;
+        let filter = Some(doc!{
+            "$or": [
+                { "title": { "$regex": query, "$options": "i" } },
+                { "author": { "$regex": query, "$options": "i" } },
+                { "op": { "$regex": query, "$options": "i" } },
+                { "tags": { "$regex": query, "$options": "i" } },
+                { "material": { "$regex": query, "$options": "i" } }
+            ]
+        });
+        let find_options = Some(FindOptions::builder()
+            .skip(u64::from(skip_amount))
+            .limit(limit)
+            .sort(doc! {sort: -1, "time": -1})
+            .build());
 
-        match paths.is_empty() {
+        let paths = database.find(filter, find_options).await;
+
+        match !paths.is_empty() {
             true => {
-                self.show = None;
+                self.show = Some(Json(paths));
                 self
             }
             false => {
-                self.show = Some(Json(paths));
+                self.show = None;
                 self
             }
         }
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ViewPostsPath {
+    page_number: u16,
+    sort: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SearchQuery {
+    #[serde(default)]
+    query: String,
+}
+
 #[get("/view-posts/{page_number}/{sort}")]
 pub async fn view_posts(
-    path: Path<(u16, String)>,
+    path: Path<ViewPostsPath>,
+    query: Query<SearchQuery>,
     database: Data<mongodb::Collection<YuriPosts>>,
 ) -> Json<Vec<Document>> {
-    let (page_number, sort) = path.into_inner();
+    let page_number = path.page_number;
+    let sort = &path.sort;
+    let query = &query.query;
 
     let mut generated = Gallery::new(page_number * 10);
 
-    generated.gen_gallery(database, sort).await;
+    generated.gen_gallery(database, &sort, &query).await;
 
-    generated.show.unwrap()
-}
-
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct PostImageRequest {
-    title: String,
-    author: String,
-    op: String,
-    time: u64,
-    tags: Option<Vec<String>>,
-    file_name: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct DeleteImageRequest {
-    title: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct LikeImageRequest {
-    path: String,
-    title: String,
+    match generated.show {
+        Some(documents) => documents,
+        None => Json(Vec::default()),
+    }
 }
 
 #[post("/post_image")]
 pub async fn post_image(
     database: Data<mongodb::Collection<YuriPosts>>,
-    request: Json<PostImageRequest>,
-) -> HttpResponse {
-    let path = format!(
-        "./assets/posts/{}-{}-{}",
-        &request.author, &request.time, &request.file_name
-    );
-    let database: mongodb::Collection<YuriPosts> = database.clone_with_type();
+    mut payload: Multipart,
+) -> actix_web::Result<impl Responder> {
+    let utc_now = chrono::Utc::now();
+    let time = utc_now.timestamp() as u64;
 
+    // FIXME: This is probably not good
+    let mut title = String::default();
+    let mut author = String::default();
+    let mut op = String::default();
+    let mut material = String::default();
+    let mut link: Option<String> = None;
+    let mut width: usize = 480;
+    let mut height: usize = 640;
+    let mut tags: Option<Vec<String>> = None;
+    let mut filename = String::default();
+    let mut path = String::default();
+
+    while let Some(mut field) = payload.try_next().await? {
+        // Match chunks of field name to title
+        match field.name() {
+            "title" => {
+                if let Some(chunk) = field.try_next().await? {
+                    title = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "author" => {
+                if let Some(chunk) = field.try_next().await? {
+                    author = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "op" => {
+                if let Some(chunk) = field.try_next().await? {
+                    op = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "material" => {
+                if let Some(chunk) = field.try_next().await? {
+                    material = std::str::from_utf8(&chunk)?.to_owned();
+                }
+            }
+            "link" => {
+                if let Some(chunk) = field.try_next().await? {
+                    let chunk_to_str = std::str::from_utf8(&chunk)?;
+                    link = match !chunk_to_str.is_empty() {
+                        true => Some(String::from(chunk_to_str)),
+                        false => None,
+                    };
+                }
+            }
+            "tags" => {
+                if let Some(chunk) = field.try_next().await? {
+                    let chunk_to_str = std::str::from_utf8(&chunk)?;
+                    tags = match !chunk_to_str.is_empty() {
+                        true => Some(
+                            chunk_to_str
+                                .split_terminator(',')
+                                .map(|s| String::from(s.trim()))
+                                .collect::<Vec<String>>(),
+                        ),
+                        false => None,
+                    };
+                }
+            }
+            "filename" => {
+                if let Some(chunk) = field.try_next().await? {
+                    filename = std::str::from_utf8(&chunk)?.to_owned();
+                    filename = sanitize_filename::sanitize(filename);
+                }
+            }
+            "width" => {
+                if let Some(chunk) = field.try_next().await? {
+                    width = std::str::from_utf8(&chunk)?.parse().unwrap_or(480);
+                }
+            }
+            "height" => {
+                if let Some(chunk) = field.try_next().await? {
+                    height = std::str::from_utf8(&chunk)?.parse().unwrap_or(640);
+                }
+            }
+            "image" => {
+                let mut filepath = format!("./assets/posts/{author}-{time}-{filename}");
+                filepath.retain(|c| c != '?');
+                path = filepath.clone();
+
+                let mut f = web::block(|| std::fs::File::create(filepath)).await??;
+
+                while let Some(chunk) = field.try_next().await? {
+                    f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
+                }
+            }
+            _ => (),
+        }
+    }
+
+    let resolution = Resolution { width, height };
+
+    let stats = PostStats { likes: 0, views: 0 };
+
+    let source = Source { material, link };
+
+    // Have to check string here for some reason.
+    let op = match op.is_empty() {
+        true => String::from("monika"),
+        false => op,
+    };
+
+    // TODO: Reference counted?
     let docs = YuriPosts {
-        title: request.title.clone(),
-        author: request.author.clone(),
-        op: request.op.clone(),
+        title,
+        author,
+        op,
         path,
-        time: request.time.clone(),
-        tags: request.tags.clone(),
-        stats: PostStats::default(),
+        source,
+        resolution,
+        time,
+        tags,
+        stats,
         comments: None,
     };
 
-    database
+    let oid = database
         .insert_one(docs, None)
         .await
-        .expect("Handle this error properly u lazy fuck");
+        .expect("Handle this error properly u lazy fuck")
+        .inserted_id
+        .as_object_id()
+        .expect("Could not convert to ObjectId")
+        .to_hex();
 
-    HttpResponse::Ok().body("yeet")
+    Ok(web::Json(DeleteImageRequest { oid }))
 }
 
 #[delete("/delete_post")]
@@ -144,24 +281,33 @@ pub async fn delete_post(
     database: Data<mongodb::Collection<YuriPosts>>,
     request: Json<DeleteImageRequest>,
 ) -> HttpResponse {
-    let filter = doc! { "title": format!("{}", &request.title) };
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
+    let filter = doc! {
+        "_id": oid,
+    };
 
-    database
-        .delete_one(filter, None)
+    let post_struct = database
+        .find_one(filter.clone(), None)
         .await
-        .expect("Handle this pweeze");
+        .expect("BRO WHAT DA HECK")
+        .expect("Unable to find post from ObjectId");
+
+    std::fs::remove_file(post_struct.path).unwrap_or(eprintln!("Unable to remove file"));
+
+    database.delete_one(filter, None).await.expect("SHITTTT");
 
     HttpResponse::Ok().body("Deleted")
 }
 
 #[put("/like-post")]
 pub async fn like_post(
-        request: Json<LikeImageRequest>,
-        database: Data<mongodb::Collection<YuriPosts>>
+    request: Json<LikeImageRequest>,
+    database: Data<mongodb::Collection<YuriPosts>>,
 ) -> HttpResponse {
+    // Parse oid into ObjectId object type
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
-        "title": format!("{}", &request.title),
-        "path": format!("{}", &request.path)
+        "_id": oid,
     };
     let add_like = doc! { "$inc": { "stats.likes": 1 } };
 
@@ -175,12 +321,13 @@ pub async fn like_post(
 
 #[put("/unlike-post")]
 pub async fn unlike_post(
-        request: Json<LikeImageRequest>,
-        database: Data<mongodb::Collection<YuriPosts>>
+    request: Json<LikeImageRequest>,
+    database: Data<mongodb::Collection<YuriPosts>>,
 ) -> HttpResponse {
+    // Parse oid into ObjectId object type
+    let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
-        "title": format!("{}", &request.title),
-        "path": format!("{}", &request.path)
+        "_id": oid,
     };
     let remove_like = doc! { "$inc": { "stats.likes": -1 } };
 

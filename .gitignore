@@ -11,6 +11,9 @@ frontend/target/debug/incremental
 frontend/target/debug
 frontend/target/.rustc_info.json
 frontend/target/CACHEDIR.TAG
+frontend/dist/**
+frontend/dist/*
+frontend/dist
 
 target/debug
 
@@ -23,7 +26,6 @@ Cargo.lock
 frontend/dist
 markdown/assets/img
 target/**
-frontend/dist/**
 target/debug/.fingerprint
 target/debug/deps
 target/debug/incremental

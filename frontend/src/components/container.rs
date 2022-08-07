@@ -1,5 +1,4 @@
-use super::scrolltop::ScrollTop;
-use super::sidebar::Sidebar;
+use super::{fileupload::FileUpload, scrolltop::ScrollTop, sidebar::Sidebar};
 use yew::{html, Component, Context, Html};
 
 pub struct Container;
@@ -16,6 +15,7 @@ impl Component for Container {
         html! {
             <div class={"container"}>
                 <Sidebar/>
+                <FileUpload/>
                 <ScrollTop/>
             </div>
         }

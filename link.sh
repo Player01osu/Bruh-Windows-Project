@@ -22,15 +22,9 @@ case $1 in
 		ln -s $(pwd)/frontend/dist ./backend/
 		;;
 	"--debug")
+		link_debug
+		;;
 	"")
-		rm -rf ./target/**/static
-		rm -rf ./target/**/static.json
-		rm -rf ./target/**/dist
-		rm -rf ./target/**/assets
-
-		ln -s $(pwd)/backend/src/static ./target/debug/static
-		ln -s $(pwd)/backend/static.json ./target/debug/
-		ln -s $(pwd)/frontend/assets ./target/debug/
-		ln -s $(pwd)/frontend/dist ./backend/
+		link_debug
 		;;
 esac
