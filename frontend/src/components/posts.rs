@@ -237,24 +237,26 @@ impl Component for Posts {
             }
 
             ImageMessage::QueryImages(fetched_images) => {
-                for image in fetched_images {
-                    self.images.push(Image {
-                        oid: image._id.oid,
-                        state: ImageExpandState::Unfocus,
-                        title: image.title,
-                        author: image.author,
-                        op: image.op,
-                        source: image.source,
-                        resolution: image.resolution,
-                        path: image.path,
-                        stats: image.stats,
-                        time: image.time,
-                        tags: image.tags,
-                        comments: image.comments,
-                        class: "yuri-img".to_string(),
-                        heart_state: ImageLiked::Unliked,
-                        heart_class: "heart".to_string(),
-                    })
+                if self.images.is_empty() {
+                    for image in fetched_images {
+                        self.images.push(Image {
+                            oid: image._id.oid,
+                            state: ImageExpandState::Unfocus,
+                            title: image.title,
+                            author: image.author,
+                            op: image.op,
+                            source: image.source,
+                            resolution: image.resolution,
+                            path: image.path,
+                            stats: image.stats,
+                            time: image.time,
+                            tags: image.tags,
+                            comments: image.comments,
+                            class: "yuri-img".to_string(),
+                            heart_state: ImageLiked::Unliked,
+                            heart_class: "heart".to_string(),
+                        })
+                    }
                 }
                 true
             }
