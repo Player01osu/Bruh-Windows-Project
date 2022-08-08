@@ -47,6 +47,7 @@ pub struct Image {
 pub struct Posts {
     images: Vec<Image>,
     page: u16,
+    prev_succeed: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -172,6 +173,7 @@ impl Component for Posts {
         let posts = Self {
             images: Vec::default(),
             page: 1,
+            prev_succeed: true,
         };
 
         let link = ctx.link();
@@ -200,29 +202,38 @@ impl Component for Posts {
 
                 if self.page == 1 {
                     self.images.clear();
+                    self.prev_succeed = true;
                 }
-                self.retrieve_posts(ctx.link(), ctx.props().query.clone());
+
+                if self.prev_succeed == true {
+                    self.retrieve_posts(ctx.link(), ctx.props().query.clone());
+                }
                 true
             }
 
             PostMsg::QueryImages(fetched_images) => {
-                for image in fetched_images {
-                    self.images.push(Image {
-                        oid: image._id.oid,
-                        state: ImageExpandState::Unfocus,
-                        title: image.title,
-                        author: image.author,
-                        op: image.op,
-                        source: image.source,
-                        resolution: image.resolution,
-                        path: image.path,
-                        stats: image.stats, time: image.time,
-                        tags: image.tags,
-                        comments: image.comments,
-                        class: "yuri-img".to_string(),
-                        heart_state: ImageLiked::Unliked,
-                        heart_class: "heart".to_string(),
-                    })
+                if !fetched_images.is_empty() {
+                    for image in fetched_images {
+                        self.images.push(Image {
+                            oid: image._id.oid,
+                            state: ImageExpandState::Unfocus,
+                            title: image.title,
+                            author: image.author,
+                            op: image.op,
+                            source: image.source,
+                            resolution: image.resolution,
+                            path: image.path,
+                            stats: image.stats, time: image.time,
+                            tags: image.tags,
+                            comments: image.comments,
+                            class: "yuri-img".to_string(),
+                            heart_state: ImageLiked::Unliked,
+                            heart_class: "heart".to_string(),
+                        })
+                    }
+                    self.prev_succeed = true;
+                } else {
+                    self.prev_succeed = false;
                 }
                 true
             }

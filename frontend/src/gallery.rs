@@ -7,12 +7,6 @@ use web_sys::WheelEvent;
 use yew::{html, html::Scope, Callback, Component, Context, Html, NodeRef};
 use yew_router::{scope_ext::{HistoryHandle, RouterScopeExt}, prelude::Location};
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct PageNumber {
-    pub page_number: Callback<GalleryMsg>,
-}
-
-
 pub struct Gallery {
     _history_handle: HistoryHandle,
     query: PostQuery,
