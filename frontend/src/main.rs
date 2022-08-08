@@ -1,8 +1,8 @@
-mod pages;
 mod components;
+mod pages;
 mod routes;
 
-use components::{template::Template, container::Container};
+use components::{container::Container, template::Template};
 use routes::{switch, Route};
 use yew::{html, Component, Context, Html};
 use yew_router::{BrowserRouter, Switch};

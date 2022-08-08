@@ -79,7 +79,7 @@ impl Gallery {
         let skip_amount = u32::from(self.amount - 10);
         let limit = i64::from(self.amount);
 
-        let filter = Some(doc!{
+        let filter = Some(doc! {
             "$or": [
                 { "title": { "$regex": query, "$options": "i" } },
                 { "author": { "$regex": query, "$options": "i" } },
@@ -88,11 +88,13 @@ impl Gallery {
                 { "material": { "$regex": query, "$options": "i" } }
             ]
         });
-        let find_options = Some(FindOptions::builder()
-            .skip(u64::from(skip_amount))
-            .limit(limit)
-            .sort(doc! {sort: -1, "time": -1})
-            .build());
+        let find_options = Some(
+            FindOptions::builder()
+                .skip(u64::from(skip_amount))
+                .limit(limit)
+                .sort(doc! {sort: -1, "time": -1})
+                .build(),
+        );
 
         let paths = database.find(filter, find_options).await;
 

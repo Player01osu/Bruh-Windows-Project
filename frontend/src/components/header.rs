@@ -22,9 +22,9 @@ impl Component for Header {
                         <h1>{ "Wholesome Yuri" }</h1>
                     </div>
                 </div>
-                
+
                     <div class={ "nav-header" }>
-                    
+
                     </div>
             </>
         }

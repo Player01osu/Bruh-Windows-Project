@@ -3,7 +3,10 @@ use web_sys::{FormData, HtmlFormElement};
 use yew::{html, html::Scope, Callback, Component, Context, Html, Properties, TargetCast};
 use yew_router::prelude::*;
 
-use super::{template::{Body, TemplateMsg}, posts::PostQuery};
+use super::{
+    posts::PostQuery,
+    template::{Body, TemplateMsg},
+};
 
 pub struct Sidebar {
     visibility: SidebarVisibility,
@@ -42,7 +45,10 @@ impl Sidebar {
     }
 
     fn links() -> Html {
-        let query = PostQuery { sort: String::from("new"), ..Default::default() };
+        let query = PostQuery {
+            sort: String::from("new"),
+            ..Default::default()
+        };
 
         html! {
             <>
@@ -103,10 +109,7 @@ impl Component for Sidebar {
                 let post_query = location.query::<PostQuery>().unwrap();
                 let sort = post_query.sort;
 
-                let query = PostQuery {
-                    sort,
-                    query,
-                };
+                let query = PostQuery { sort, query };
 
                 history.push_with_query(Route::Gallery, query).unwrap();
                 true
@@ -116,7 +119,6 @@ impl Component for Sidebar {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
         let onsubmit = {
             ctx.link().callback(move |event: web_sys::FocusEvent| {

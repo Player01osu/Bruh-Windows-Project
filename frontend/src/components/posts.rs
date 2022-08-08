@@ -221,7 +221,8 @@ impl Component for Posts {
                             source: image.source,
                             resolution: image.resolution,
                             path: image.path,
-                            stats: image.stats, time: image.time,
+                            stats: image.stats,
+                            time: image.time,
                             tags: image.tags,
                             comments: image.comments,
                             style: "yuri-img".to_string(),
@@ -242,7 +243,7 @@ impl Component for Posts {
 
                 let request_uri = match image.toggle_like() {
                     true => String::from("/api/like-post"),
-                    false => String::from("/api/unlike-post")
+                    false => String::from("/api/unlike-post"),
                 };
 
                 ctx.link().send_future(async move {

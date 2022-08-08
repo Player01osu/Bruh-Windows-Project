@@ -5,7 +5,10 @@ use crate::components::posts::Posts;
 use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Component, Context, Html, NodeRef};
-use yew_router::{scope_ext::{HistoryHandle, RouterScopeExt}, prelude::Location};
+use yew_router::{
+    prelude::Location,
+    scope_ext::{HistoryHandle, RouterScopeExt},
+};
 
 pub struct Gallery {
     _history_handle: HistoryHandle,
@@ -74,8 +77,8 @@ impl Component for Gallery {
                         self.scroll_bottom_buffer = 40;
                     }
                     false => {
-                            self.scroll_bottom_buffer -= 1;
-                        }
+                        self.scroll_bottom_buffer -= 1;
+                    }
                 }
 
                 true
@@ -87,7 +90,7 @@ impl Component for Gallery {
                 self.show_posts();
                 true
             }
-            GalleryMsg::None => false
+            GalleryMsg::None => false,
         }
     }
 
@@ -106,8 +109,8 @@ impl Component for Gallery {
             } else {
                 GalleryMsg::None
             }
-                //self.document_height = document_height / 1.58;
-                //self.wheel_position = wheel_position * 1.5;
+            //self.document_height = document_height / 1.58;
+            //self.wheel_position = wheel_position * 1.5;
         });
 
         let node_ref = self.node_ref.clone();
