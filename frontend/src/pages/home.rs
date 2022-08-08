@@ -1,4 +1,3 @@
-use super::components::{container::Container, template::Template};
 use yew::{html, Component, Context, Html};
 
 pub enum HomeMsg {
@@ -29,12 +28,9 @@ impl Component for Home {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <>
-                <Template>
-                    <Container/>
-                    <h2 style="position: relative; margin-top: 100px; margin-left: 200px;">{
-                        "Welcome! to the Wholesome Yuri website"
-                    }</h2>
-                </Template>
+                <h2 style="position: relative; margin-top: 100px; margin-left: 200px;">
+                    { "Welcome! to the Wholesome Yuri website" }
+                </h2>
             </>
         }
     }

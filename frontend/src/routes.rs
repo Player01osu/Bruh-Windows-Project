@@ -1,8 +1,6 @@
-use super::gallery::Gallery;
-use super::{about::About, home::Home, not_found::NotFound, tags::Tags};
+use crate::pages::{about::About, home::Home, not_found::NotFound, tags::Tags, gallery::Gallery};
 use yew::{html, Html};
-use yew_router::prelude::*;
-use yew_router::{Routable, Switch};
+use yew_router::Routable;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {

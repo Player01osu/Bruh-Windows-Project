@@ -1,11 +1,8 @@
-mod about;
+mod pages;
 mod components;
-mod gallery;
-mod home;
-mod not_found;
 mod routes;
-mod tags;
 
+use components::{template::Template, container::Container};
 use routes::{switch, Route};
 use yew::{html, Component, Context, Html};
 use yew_router::{BrowserRouter, Switch};
@@ -23,7 +20,10 @@ impl Component for App {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <BrowserRouter>
-                <Switch<Route> render={Switch::render(switch)} />
+                <Template>
+                    <Container/>
+                        <Switch<Route> render={Switch::render(switch)} />
+                </Template>
             </BrowserRouter>
         }
     }

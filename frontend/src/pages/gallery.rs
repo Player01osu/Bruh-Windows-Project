@@ -1,7 +1,7 @@
 use crate::components::posts::PostQuery;
 use crate::components::sortbuttons::SortButtons;
 
-use super::components::{container::Container, posts::Posts, template::Template};
+use crate::components::posts::Posts;
 use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Component, Context, Html, NodeRef};
@@ -117,14 +117,11 @@ impl Component for Gallery {
             <>
                 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
                 <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-                <Template>
-                    <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
-                        <Container/>
-                        <center>
-                            { show_posts }
-                        </center>
-                    </div>
-                </Template>
+                <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
+                    <center>
+                        { show_posts }
+                    </center>
+                </div>
             </>
         }
     }
