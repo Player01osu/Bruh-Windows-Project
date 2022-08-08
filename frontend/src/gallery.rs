@@ -4,15 +4,13 @@ use crate::components::sortbuttons::SortButtons;
 use super::components::{container::Container, posts::Posts, template::Template};
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, html::Scope, Callback, Component, Context, Html, NodeRef};
+use yew::{html, Component, Context, Html, NodeRef};
 use yew_router::{scope_ext::{HistoryHandle, RouterScopeExt}, prelude::Location};
 
 pub struct Gallery {
     _history_handle: HistoryHandle,
     query: PostQuery,
     page_number: u16,
-    document_height: f64,
-    wheel_position: f64,
     scroll_bottom_buffer: u16,
     posts: Html,
     node_ref: NodeRef,
@@ -34,8 +32,6 @@ impl Gallery {
             <>
                 <SortButtons query={query.clone()}/>
                 <Posts
-                    document_height={self.document_height}
-                    wheel_position={self.wheel_position}
                     {query}
                     {page_number}
                     gallery_node_ref={node_ref}
@@ -58,8 +54,6 @@ impl Component for Gallery {
         let gallery = Self {
             _history_handle: history_listener,
             query: PostQuery::default(),
-            document_height: 0.0,
-            wheel_position: 0.0,
             page_number: 1,
             scroll_bottom_buffer: 1,
             posts: Html::default(),

@@ -20,8 +20,6 @@ pub enum PostMsg {
 pub struct PostProps {
     pub page_number: u16,
     pub query: PostQuery,
-    pub document_height: f64,
-    pub wheel_position: f64,
     pub gallery_node_ref: NodeRef,
 }
 
