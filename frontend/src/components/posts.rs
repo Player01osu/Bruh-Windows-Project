@@ -216,8 +216,7 @@ impl Component for Posts {
                         source: image.source,
                         resolution: image.resolution,
                         path: image.path,
-                        stats: image.stats,
-                        time: image.time,
+                        stats: image.stats, time: image.time,
                         tags: image.tags,
                         comments: image.comments,
                         class: "yuri-img".to_string(),
@@ -230,45 +229,29 @@ impl Component for Posts {
 
             PostMsg::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
+                let image_oid = image.oid.clone();
 
-                match image.toggle_like() {
-                    true => {
-                        let image = image.clone();
-                        ctx.link().send_future(async move {
-                            Request::put(&format!("/api/like-post"))
-                                .header("Content-Type", "application/json")
-                                .body(&format!(
-                                    r#"
-                                    {{
-                                        "oid": "{}"
-                                    }}"#,
-                                    image.oid
-                                ))
-                                .send()
-                                .await
-                                .expect("Failed to send put request (/api/like-post/)");
-                            PostMsg::None
-                        })
-                    }
-                    false => {
-                        let image = image.clone();
-                        ctx.link().send_future(async move {
-                            Request::put(&format!("/api/unlike-post"))
-                                .header("Content-Type", "application/json")
-                                .body(&format!(
-                                    r#"
-                                    {{
-                                        "oid": "{}"
-                                    }}"#,
-                                    image.oid
-                                ))
-                                .send()
-                                .await
-                                .expect("Failed to send put request (/api/unlike-post/)");
-                            PostMsg::None
-                        })
-                    }
+                let request_uri = match image.toggle_like() {
+                    true => String::from("/api/like-post"),
+                    false => String::from("/api/unlike-post")
                 };
+
+                ctx.link().send_future(async move {
+                    Request::put(&request_uri)
+                        .header("Content-Type", "application/json")
+                        .body(&format!(
+                            r#"
+                            {{
+                                "oid": "{}"
+                            }}"#,
+                            image_oid
+                        ))
+                        .send()
+                        .await
+                        .expect("Failed to send put request (/api/like-post/)");
+                    PostMsg::None
+                });
+
                 true
             }
 
