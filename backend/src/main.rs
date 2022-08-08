@@ -36,7 +36,6 @@ pub async fn run() -> std::io::Result<()> {
     ROUTEMAP.insert("{{404}}".into(), route_handle);
 
     let database = MongodbDatabase::mongo_connect().await;
-    MongodbDatabase::create_cursor(&database).await;
 
     HttpServer::new(move || {
         let database_data = Data::new(database.clone());

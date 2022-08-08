@@ -30,23 +30,6 @@ impl MongodbDatabase {
         mongodb_collection
     }
 
-    pub async fn create_cursor(collection: &mongodb::Collection<YuriPosts>) {
-        let index_model = IndexModel::builder()
-            .keys(doc! {
-                "title": "text",
-                "author": "text",
-                "op": "text",
-                "tags": "text",
-                "source": "text"
-            })
-            .build();
-
-        match collection.create_index(index_model, None).await {
-            Ok(_) => (),
-            Err(e) => eprintln!("{e}"),
-        };
-    }
-
     /// Generates a cursor for the collection, iterating through it and
     /// pushing its results to the vector for n amount of items.
     pub async fn find(
