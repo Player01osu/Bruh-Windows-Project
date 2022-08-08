@@ -37,7 +37,7 @@ pub struct Image {
     pub resolution: Resolution,
     pub time: usize,
     pub tags: Option<Vec<String>>,
-    pub class: String,
+    pub style: String,
     pub heart_state: ImageLiked,
     pub heart_class: String,
 }
@@ -64,11 +64,11 @@ impl Image {
                 //    true => -20,
                 //    false => 0,
                 //};
-                self.class = format!("yuri-img-clicked");
+                self.style = format!("IMPLEMENT ME");
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.class = format!("yuri-img");
+                self.style = format!("IMPLEMENT ME");
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -123,7 +123,7 @@ impl Posts {
                 { buttons }
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!(".{}", image.path)}
-                    class={format!("{}", image.class)}
+                    style={format!("{}", image.style)}
                     loading="lazy"
                     onclick={link.callback(move |_| PostMsg::ToggleExpando(image_id))}
                     />
@@ -224,7 +224,7 @@ impl Component for Posts {
                             stats: image.stats, time: image.time,
                             tags: image.tags,
                             comments: image.comments,
-                            class: "yuri-img".to_string(),
+                            style: "yuri-img".to_string(),
                             heart_state: ImageLiked::Unliked,
                             heart_class: "heart".to_string(),
                         })
