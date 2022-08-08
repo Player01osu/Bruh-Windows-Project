@@ -1,4 +1,4 @@
-use crate::{routes::GalleryRoute, Route};
+use crate::Route;
 use web_sys::{FormData, HtmlFormElement};
 use yew::{html, html::Scope, Callback, Component, Context, Html, Properties, TargetCast};
 use yew_router::prelude::*;
@@ -22,7 +22,7 @@ pub enum SidebarVisibility {
 }
 
 impl Sidebar {
-    pub fn generate_link(text: String, route: Route, query: Option<PostQuery>) -> Html {
+    fn generate_link(text: String, route: Route, query: Option<PostQuery>) -> Html {
         html! {
             <>
                 <Link<Route, PostQuery>
@@ -37,6 +37,30 @@ impl Sidebar {
                         </div>
                     </div>
                 </Link<Route, PostQuery>>
+            </>
+        }
+    }
+
+    fn links() -> Html {
+        let query = PostQuery { sort: String::from("new"), ..Default::default() };
+
+        html! {
+            <>
+                <div class="links">
+                    { Self::generate_link(String::from("HOME"), Route::Home, None) }
+                    { Self::generate_link(String::from("GALLERY"), Route::Gallery, Some(query)) }
+                    { Self::generate_link(String::from("TAGS"), Route::Tags, None) }
+                    { Self::generate_link(String::from("ABOUT"), Route::About, None) }
+                    <div class="indiv">
+                        <div>
+                            <a href="https://github.com/player01osu/yuri-web"
+                                class="link"
+                                style="text-decoration: none;">
+                                    {"GITHUB"}
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </>
         }
     }
@@ -71,6 +95,7 @@ impl Component for Sidebar {
                 }
                 true
             }
+
             SidebarMsg::Search(query) => {
                 let history = ctx.link().history().unwrap();
                 let location = ctx.link().location().unwrap();
@@ -102,33 +127,6 @@ impl Component for Sidebar {
                 let query = data.get("q").as_string().expect("Fucking parse this mf");
                 SidebarMsg::Search(query)
             })
-        };
-
-        let query = PostQuery { sort: String::from("new"), ..Default::default() };
-
-        let home = Self::generate_link(String::from("HOME"), Route::Home, None);
-        let gallery = Self::generate_link(String::from("GALLERY"), Route::Gallery, Some(query));
-        let tags = Self::generate_link(String::from("TAGS"), Route::Tags, None);
-        let about = Self::generate_link(String::from("ABOUT"), Route::About, None);
-
-        let links = html! {
-            <>
-                <div class="links">
-                    { home }
-                    { gallery }
-                    { tags }
-                    { about }
-                    <div class="indiv">
-                        <div>
-                            <a href="https://github.com/player01osu/yuri-web"
-                                class="link"
-                                style="text-decoration: none;">
-                                    {"GITHUB"}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </>
         };
 
         html! {
@@ -163,7 +161,7 @@ impl Component for Sidebar {
                                 </div>
                             </div>
                         <center>
-                            { links }
+                            { Self::links() }
                         </center>
                     </div>
                 </div>
