@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 base64 = "0.13.0"
 chrono = "0.4.19"
-common = { path = "../common" }
 derive_more = "^0.99.17"
 futures = "0.3.21"
 gloo-file = "0.2.3"
@@ -23,3 +22,5 @@ wasm-bindgen-futures = "^0.4.31"
 web-sys = { version = "^0.3.59", features = ["Document", "HtmlCollection", "File", "DragEvent", "DataTransfer", "FormData", "HtmlFormElement", "HtmlElement"] }
 yew = "^0.19"
 yew-router = "^0.16"
+
+common = { path = "../common" }
