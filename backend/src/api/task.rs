@@ -85,7 +85,7 @@ impl Gallery {
                 { "author": { "$regex": query, "$options": "i" } },
                 { "op": { "$regex": query, "$options": "i" } },
                 { "tags": { "$regex": query, "$options": "i" } },
-                { "material": { "$regex": query, "$options": "i" } }
+                { "source.material": { "$regex": query, "$options": "i" } }
             ]
         });
         let find_options = Some(
