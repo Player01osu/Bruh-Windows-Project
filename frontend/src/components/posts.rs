@@ -1,34 +1,17 @@
-use super::sortbuttons::SortButtons;
-
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use web_sys::Element;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef, Properties};
-use yew_router::prelude::*;
 
 use common::mongodb::structs::{
     Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Source,
 };
-use yew_router::scope_ext::HistoryHandle;
-
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
 
 pub enum PostMsg {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
     LoadPosts,
-    ShowMore,
     Like(usize),
     None,
 }
@@ -64,9 +47,6 @@ pub struct Image {
 pub struct Posts {
     images: Vec<Image>,
     page: u16,
-    scroll_bottom_buffer: u16,
-    query: PostQuery,
-    request_builder: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -192,9 +172,6 @@ impl Component for Posts {
         let posts = Self {
             images: Vec::default(),
             page: 1,
-            scroll_bottom_buffer: 0,
-            query: PostQuery::default(),
-            request_builder: String::from("new"),
         };
 
         let link = ctx.link();
@@ -220,7 +197,10 @@ impl Component for Posts {
 
             PostMsg::LoadPosts => {
                 self.page = ctx.props().page_number;
-                self.images.clear();
+
+                if self.page == 1 {
+                    self.images.clear();
+                }
                 self.retrieve_posts(ctx.link(), ctx.props().query.clone());
                 true
             }
@@ -246,39 +226,6 @@ impl Component for Posts {
                     })
                 }
                 true
-            }
-
-            PostMsg::ShowMore => {
-                // FIXME bruh just make this the loadpage function bruh
-                let query = ctx.link().location().unwrap().query::<PostQuery>().unwrap();
-                let sort = "new".to_string();
-                let request_builder = format!("{sort}?query={}", query.query);
-                match self.scroll_bottom_buffer {
-                    0 => {
-                        self.page += 1;
-                        let api_request =
-                            format!("/api/view-posts/{}/{}", self.page, request_builder);
-                        ctx.link().send_future(async move {
-                            let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
-                                .send()
-                                .await
-                                .unwrap()
-                                .json()
-                                .await
-                                .unwrap();
-                            PostMsg::QueryImages(fetched_images)
-                        });
-                        let mut new_image_vec: Vec<Image> = Vec::new();
-                        self.images.append(&mut new_image_vec);
-                        self.scroll_bottom_buffer = 20;
-
-                        true
-                    }
-                    _ => {
-                        self.scroll_bottom_buffer -= 1;
-                        false
-                    }
-                }
             }
 
             PostMsg::Like(image_id) => {
@@ -351,13 +298,6 @@ impl Component for Posts {
     }
 
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        match ctx.props().wheel_position / ctx.props().document_height > 0.8 {
-            true => {
-                ctx.link().send_message(PostMsg::LoadPosts);
-            }
-            false => (),
-        }
-
         ctx.link().send_message(PostMsg::LoadPosts);
         true
     }

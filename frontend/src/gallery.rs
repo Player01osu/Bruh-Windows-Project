@@ -8,9 +8,10 @@ use yew::{html, html::Scope, Callback, Component, Context, Html, NodeRef};
 use yew_router::{scope_ext::{HistoryHandle, RouterScopeExt}, prelude::Location};
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Body {
-    pub callback: Callback<GalleryMsg>,
+pub struct PageNumber {
+    pub page_number: Callback<GalleryMsg>,
 }
+
 
 pub struct Gallery {
     _history_handle: HistoryHandle,
@@ -18,6 +19,7 @@ pub struct Gallery {
     page_number: u16,
     document_height: f64,
     wheel_position: f64,
+    scroll_bottom_buffer: u16,
     posts: Html,
     node_ref: NodeRef,
 }
@@ -28,17 +30,6 @@ pub enum GalleryMsg {
     None,
 }
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
 impl Gallery {
     pub fn show_posts(&mut self) {
         let node_ref = self.node_ref.clone();
@@ -76,6 +67,7 @@ impl Component for Gallery {
             document_height: 0.0,
             wheel_position: 0.0,
             page_number: 1,
+            scroll_bottom_buffer: 1,
             posts: Html::default(),
             node_ref: NodeRef::default(),
         };
@@ -87,14 +79,23 @@ impl Component for Gallery {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             GalleryMsg::LoadMore => {
-                self.page_number += 1;
-                self.show_posts();
+                match self.scroll_bottom_buffer == 0 {
+                    true => {
+                        self.page_number += 1;
+                        self.show_posts();
+                        self.scroll_bottom_buffer = 40;
+                    }
+                    false => {
+                            self.scroll_bottom_buffer -= 1;
+                        }
+                }
+
                 true
             }
 
             GalleryMsg::Reload => {
                 self.query = ctx.link().location().unwrap().query::<PostQuery>().unwrap();
-                console_log!("change");
+                self.page_number = 1;
                 self.show_posts();
                 true
             }
