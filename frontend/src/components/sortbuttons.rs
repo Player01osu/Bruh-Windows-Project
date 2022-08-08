@@ -1,144 +1,91 @@
-use crate::routes::GalleryRoute;
-use std::rc::Rc;
+use crate::routes::Route;
 
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, Html, Properties};
 use yew_router::prelude::*;
 
-use yew_router::scope_ext::HistoryHandle;
+use super::posts::PostQuery;
 
-#[derive(Clone, PartialEq)]
-pub struct SortStruct {
-    link: GalleryRoute,
-    text: Rc<String>,
-}
-
-pub struct SortButtons {
-    _listener: HistoryHandle,
-    sort_current: String,
-    sort_current_display: String,
-    sort_one: SortStruct,
-    sort_two: SortStruct,
-}
-
-impl Default for SortStruct {
-    fn default() -> Self {
-        Self {
-            link: GalleryRoute::New,
-            text: Rc::new("New".to_string()),
-        }
-    }
-}
-
-pub enum SortButtonsMessage {
-    CreateButtons,
-}
+pub struct SortButtons;
 
 impl SortButtons {
-    fn populate_buttons(&mut self, lookup_num: usize) {
-        let lookup_buttons = [
-            (Rc::new("New".to_string()), GalleryRoute::New),
-            (Rc::new("Top".to_string()), GalleryRoute::Top),
-            (Rc::new("Views".to_string()), GalleryRoute::Views),
-        ];
+    fn generate_buttons(query: &PostQuery, index: u16) -> PostQuery {
+        let offset = match query.sort.as_str() {
+            "new" => 0,
+            "top" => 1,
+            "views" => 2,
+            _ => 0,
+        };
 
-        let (text, _) = lookup_buttons.get(lookup_num).unwrap();
-        self.sort_current_display = text.to_string();
-        let lookup_buttons = lookup_buttons.clone();
-        let (text, link) = lookup_buttons.get((lookup_num + 1) % 3).unwrap();
+        let sort = match (offset + index) % 3 {
+            0 => String::from("new"),
+            1 => String::from("top"),
+            2 => String::from("views"),
+            _ => String::from("new"),
+        };
 
-        self.sort_one.link = link.to_owned();
-        self.sort_one.text = text.clone();
+        let query = query.query.clone();
 
-        let lookup_buttons = lookup_buttons.clone();
-        let (text, link) = lookup_buttons.get((lookup_num + 2) % 3).unwrap();
-
-        self.sort_two.link = link.to_owned();
-        self.sort_two.text = text.clone();
-    }
-}
-
-// FIXME: This is bad
-impl Component for SortButtons {
-    type Properties = ();
-    type Message = SortButtonsMessage;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let listener = ctx
-            .link()
-            .add_history_listener(ctx.link().callback(|_| SortButtonsMessage::CreateButtons))
-            .unwrap();
-
-        Self {
-            _listener: listener,
-            sort_current: String::default(),
-            sort_current_display: String::from("New"),
-            sort_one: Default::default(),
-            sort_two: Default::default(),
+        PostQuery {
+            sort,
+            query,
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            SortButtonsMessage::CreateButtons => {
-                self.sort_current = ctx
-                    .link()
-                    .location()
-                    .unwrap()
-                    .pathname()
-                    .split_once("gallery")
-                    .unwrap_or(("", ""))
-                    .1
-                    .to_string();
-                match self.sort_current.as_str() {
-                    "/new" => {
-                        self.populate_buttons(0 as usize);
-                    }
-                    "/top" => {
-                        self.populate_buttons(1 as usize);
-                    }
-                    "/views" => {
-                        self.populate_buttons(2 as usize);
-                    }
-                    _ => {
-                        self.populate_buttons(0 as usize);
-                    }
-                }
-                true
-            }
-        }
-    }
+    fn generate_sort_buttons(query: PostQuery) -> Html {
+        let sort_current = Self::generate_buttons(&query, 0);
+        let sort_one = Self::generate_buttons(&query, 1);
+        let sort_two = Self::generate_buttons(&query, 2);
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        let current_sort_display = self.sort_current_display.clone();
-        let sort_one = self.sort_one.clone();
-        let sort_two = self.sort_two.clone();
+        let sort_current_text = &sort_current.sort.to_uppercase();
+        let sort_one_text = &sort_one.sort.to_uppercase();
+        let sort_two_text = &sort_two.sort.to_uppercase();
 
         html! {
             <>
-                <div class="sort-buttons">
-                    <button class="dropbtn">{current_sort_display}</button>
-                    <div class="sort-button-content">
-                        <Link<GalleryRoute> to={sort_one.link} classes="link">{ sort_one.text }</Link<GalleryRoute>>
-                        <Link<GalleryRoute> to={sort_two.link} classes="link">{ sort_two.text }</Link<GalleryRoute>>
-                    </div>
+                <button class="dropbtn">{sort_current_text}</button>
+                <div class="sort-button-content">
+                    <Link<Route, PostQuery>
+                        to={Route::Gallery}
+                        query={Some(sort_one.clone())}
+                        classes="link"
+                    >
+                        { sort_one_text }
+                    </Link<Route, PostQuery>>
+                    <Link<Route, PostQuery>
+                        to={Route::Gallery}
+                        query={Some(sort_two.clone())}
+                        classes="link"
+                    >
+                        { sort_two_text }
+                    </Link<Route, PostQuery>>
                 </div>
             </>
         }
     }
+}
 
-    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
-        self.sort_current = ctx
-            .link()
-            .location()
-            .unwrap()
-            .pathname()
-            .split_once("gallery")
-            .unwrap()
-            .1
-            .to_string();
-        match self.sort_one.eq(&self.sort_two) {
-            true => ctx.link().send_message(SortButtonsMessage::CreateButtons),
-            false => (),
+#[derive(Properties, PartialEq, Clone)]
+pub struct SortButtonsProps {
+    pub query: PostQuery,
+}
+
+impl Component for SortButtons {
+    type Properties = SortButtonsProps;
+    type Message = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let sort_buttons = Self::generate_sort_buttons(ctx.props().query.clone());
+
+        html! {
+            <>
+                <div class="sort-buttons">
+                    {sort_buttons}
+                </div>
+            </>
         }
     }
 }
