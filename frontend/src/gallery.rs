@@ -1,7 +1,11 @@
+use crate::components::posts::PostQuery;
+use crate::components::sortbuttons::SortButtons;
+
 use super::components::{container::Container, posts::Posts, template::Template};
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, Callback, Component, Context, Html, NodeRef};
+use yew::{html, html::Scope, Callback, Component, Context, Html, NodeRef};
+use yew_router::{scope_ext::{HistoryHandle, RouterScopeExt}, prelude::Location};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Body {
@@ -9,34 +13,92 @@ pub struct Body {
 }
 
 pub struct Gallery {
+    _history_handle: HistoryHandle,
+    query: PostQuery,
+    page_number: u16,
     document_height: f64,
     wheel_position: f64,
+    posts: Html,
     node_ref: NodeRef,
 }
 
 pub enum GalleryMsg {
-    LoadMore(f64, f64),
+    LoadMore,
+    Reload,
+    None,
+}
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+impl Gallery {
+    pub fn show_posts(&mut self) {
+        let node_ref = self.node_ref.clone();
+        let page_number = self.page_number;
+        let query = self.query.clone();
+
+        self.posts = html! {
+            <>
+                <SortButtons query={query.clone()}/>
+                <Posts
+                    document_height={self.document_height}
+                    wheel_position={self.wheel_position}
+                    {query}
+                    {page_number}
+                    gallery_node_ref={node_ref}
+                />
+            </>
+        };
+    }
 }
 
 impl Component for Gallery {
     type Properties = ();
     type Message = GalleryMsg;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
+    fn create(ctx: &Context<Self>) -> Self {
+        let history_listener = ctx
+            .link()
+            .add_history_listener(ctx.link().callback(move |_| GalleryMsg::Reload))
+            .unwrap();
+
+        let gallery = Self {
+            _history_handle: history_listener,
+            query: PostQuery::default(),
             document_height: 0.0,
             wheel_position: 0.0,
+            page_number: 1,
+            posts: Html::default(),
             node_ref: NodeRef::default(),
-        }
+        };
+
+        ctx.link().send_message(GalleryMsg::Reload);
+        gallery
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            GalleryMsg::LoadMore(document_height, wheel_position) => {
-                self.document_height = document_height / 1.58;
-                self.wheel_position = wheel_position * 1.5;
+            GalleryMsg::LoadMore => {
+                self.page_number += 1;
+                self.show_posts();
                 true
             }
+
+            GalleryMsg::Reload => {
+                self.query = ctx.link().location().unwrap().query::<PostQuery>().unwrap();
+                console_log!("change");
+                self.show_posts();
+                true
+            }
+            GalleryMsg::None => false
         }
     }
 
@@ -48,18 +110,19 @@ impl Component for Gallery {
                 .get_element_by_id("loadOnBottom")
                 .expect("Element id not found")
                 .scroll_height();
-            GalleryMsg::LoadMore(page_height.into(), scroll_y)
+
+            if scroll_y / page_height as f64 > 0.5 {
+                //self.page_number += 1;
+                GalleryMsg::LoadMore
+            } else {
+                GalleryMsg::None
+            }
+                //self.document_height = document_height / 1.58;
+                //self.wheel_position = wheel_position * 1.5;
         });
 
         let node_ref = self.node_ref.clone();
-        let show_posts = html! {
-            <Posts
-                document_height={self.document_height}
-                wheel_position={self.wheel_position}
-                gallery_node_ref={node_ref}
-            />
-        };
-        let node_ref = self.node_ref.clone();
+        let show_posts = self.posts.clone();
 
         html! {
             <>
@@ -68,7 +131,9 @@ impl Component for Gallery {
                 <Template>
                     <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
                         <Container/>
-                        { show_posts }
+                        <center>
+                            { show_posts }
+                        </center>
                     </div>
                 </Template>
             </>

@@ -1,6 +1,6 @@
 use crate::{routes::GalleryRoute, Route};
 use web_sys::{FormData, HtmlFormElement};
-use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
+use yew::{html, html::Scope, Callback, Component, Context, Html, Properties, TargetCast};
 use yew_router::prelude::*;
 
 use super::{template::{Body, TemplateMsg}, posts::PostQuery};
@@ -12,6 +12,7 @@ pub struct Sidebar {
 
 pub enum SidebarMsg {
     Toggle,
+    Search(String),
     None,
 }
 
@@ -20,36 +21,23 @@ pub enum SidebarVisibility {
     Hidden,
 }
 
-#[derive(PartialEq, Properties)]
-pub struct LinkProps {
-    link: String,
-    text: String,
-    route: Route,
-}
-
-pub struct Links;
-
-impl Component for Links {
-    type Properties = LinkProps;
-    type Message = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let text = ctx.props().text.clone();
-        let route = ctx.props().route.clone();
+impl Sidebar {
+    pub fn generate_link(text: String, route: Route, query: Option<PostQuery>) -> Html {
         html! {
-            <div class="indiv">
-                <div>
-                    <Link<Route> to={route} classes="link">{ format!("{text}") }</Link<Route>>
-                </div>
-            </div>
+            <>
+                <Link<Route, PostQuery>
+                    { query }
+                    to={route}
+                >
+                    <div class="indiv">
+                        <div>
+                            <a class="link" style="text-decoration: none;" >
+                                    {text}
+                            </a>
+                        </div>
+                    </div>
+                </Link<Route, PostQuery>>
+            </>
         }
     }
 }
@@ -83,12 +71,26 @@ impl Component for Sidebar {
                 }
                 true
             }
+            SidebarMsg::Search(query) => {
+                let history = ctx.link().history().unwrap();
+                let location = ctx.link().location().unwrap();
+
+                let post_query = location.query::<PostQuery>().unwrap();
+                let sort = post_query.sort;
+
+                let query = PostQuery {
+                    sort,
+                    query,
+                };
+
+                history.push_with_query(Route::Gallery, query).unwrap();
+                true
+            }
             SidebarMsg::None => true,
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let history = ctx.link().clone().history().unwrap();
 
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
         let onsubmit = {
@@ -98,22 +100,24 @@ impl Component for Sidebar {
                 let data = FormData::new_with_form(&form).unwrap();
 
                 let query = data.get("q").as_string().expect("Fucking parse this mf");
-                let query = PostQuery {
-                    query,
-                };
-
-                history.push_with_query(GalleryRoute::New, query).unwrap();
-                SidebarMsg::None
+                SidebarMsg::Search(query)
             })
         };
+
+        let query = PostQuery { sort: String::from("new"), ..Default::default() };
+
+        let home = Self::generate_link(String::from("HOME"), Route::Home, None);
+        let gallery = Self::generate_link(String::from("GALLERY"), Route::Gallery, Some(query));
+        let tags = Self::generate_link(String::from("TAGS"), Route::Tags, None);
+        let about = Self::generate_link(String::from("ABOUT"), Route::About, None);
 
         let links = html! {
             <>
                 <div class="links">
-                    <Links link="/" text="HOME" route={Route::Home}/>
-                    <Links link="/gallery" text="GALLERY" route={Route::Gallery}/>
-                    <Links link="/tags" text="TAGS" route={Route::Tags}/>
-                    <Links link="/about" text="ABOUT" route={Route::About}/>
+                    { home }
+                    { gallery }
+                    { tags }
+                    { about }
                     <div class="indiv">
                         <div>
                             <a href="https://github.com/player01osu/yuri-web"
@@ -137,7 +141,7 @@ impl Component for Sidebar {
                 width: 120px;
                 font-size: 15px;
                 margin-left:120px;
-                border: none; 
+                border: none;
                 z-index:100;" {onclick}> {"hide"} </button>
 
                 <div class="navall" style={format!("{}", &self.style)}>

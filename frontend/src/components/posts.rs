@@ -20,15 +20,14 @@ extern "C" {
     fn log(a: &str);
 }
 
-#[macro_export]
 macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-pub enum ImageMessage {
+pub enum PostMsg {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
-    LoadPage,
+    LoadPosts,
     ShowMore,
     Like(usize),
     None,
@@ -36,6 +35,8 @@ pub enum ImageMessage {
 
 #[derive(PartialEq, Properties)]
 pub struct PostProps {
+    pub page_number: u16,
+    pub query: PostQuery,
     pub document_height: f64,
     pub wheel_position: f64,
     pub gallery_node_ref: NodeRef,
@@ -61,7 +62,6 @@ pub struct Image {
 }
 
 pub struct Posts {
-    _history_handle: HistoryHandle,
     images: Vec<Image>,
     page: u16,
     scroll_bottom_buffer: u16,
@@ -117,7 +117,7 @@ impl Posts {
             <div class="user-inter">
                     <button type="button"
                         class={format!("{}", image.heart_class)}
-                        onclick={link.callback(move |_| ImageMessage::Like(image_id))}>
+                        onclick={link.callback(move |_| PostMsg::Like(image_id))}>
                         <ion-icon name="heart-outline"></ion-icon>
                     </button>
                     <button type="button" class="comments">
@@ -129,7 +129,8 @@ impl Posts {
         let tags = html! {
                 <div class="info">
                     <p>
-                    {format!("{}", image.tags
+                    {format!("{}", image
+                        .tags
                         .as_ref()
                         .unwrap_or(&vec![String::new()])
                         .join(&", ")
@@ -145,79 +146,66 @@ impl Posts {
                     src={format!(".{}", image.path)}
                     class={format!("{}", image.class)}
                     loading="lazy"
-                    onclick={link.callback(move |_| ImageMessage::ToggleExpando(image_id))}
+                    onclick={link.callback(move |_| PostMsg::ToggleExpando(image_id))}
                     />
             { tags }
             </div>
         }
     }
 
-    fn retrieve_posts(&mut self, link: &Scope<Self>) {
-        let mut sort = link
-            .location()
-            .unwrap()
-            .pathname()
-            .split_once("gallery/")
-            .unwrap_or(("", "new"))
-            .1
-            .to_string();
-        // FIXME: this kinda hacky
-        if sort.is_empty() {
-            sort = "new".to_string();
-        }
-
-        self.query = link.location().unwrap().query::<PostQuery>().unwrap();
+    fn retrieve_posts(&self, link: &Scope<Self>, post_query: PostQuery) {
         // FIXME: Reference count?
-        self.request_builder = format!("{sort}?query={}", self.query.query);
-        let request_builder = self.request_builder.clone();
+        let request_builder = format!("{}?query={}", post_query.sort, post_query.query);
+        let page = self.page;
 
         link.send_future(async move {
             let fetched_images: Vec<ImageRequest> =
-                Request::get(format! {"/api/view-posts/1/{request_builder}"}.as_str())
+                Request::get(format! {"/api/view-posts/{page}/{request_builder}"}.as_str())
                     .send()
                     .await
                     .unwrap()
                     .json()
                     .await
                     .unwrap();
-            ImageMessage::QueryImages(fetched_images)
+            PostMsg::QueryImages(fetched_images)
         });
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 pub struct PostQuery {
+    #[serde(default = "default_sort")]
+    pub sort: String,
     #[serde(rename = "q", default)]
     pub query: String,
 }
 
+fn default_sort() -> String {
+    String::from("new")
+}
+
 impl Component for Posts {
-    type Message = ImageMessage;
+    type Message = PostMsg;
     type Properties = PostProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let history_listener = ctx
-            .link()
-            .add_history_listener(ctx.link().callback(|_| ImageMessage::LoadPage))
-            .unwrap();
-
         let posts = Self {
-            _history_handle: history_listener,
             images: Vec::default(),
             page: 1,
             scroll_bottom_buffer: 0,
             query: PostQuery::default(),
             request_builder: String::from("new"),
         };
-        // FIXME FIXME bruv why
-        ctx.link().send_message(ImageMessage::LoadPage);
+
+        let link = ctx.link();
+        posts.retrieve_posts(link, ctx.props().query.clone());
 
         posts
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            ImageMessage::ToggleExpando(image_id) => {
+            PostMsg::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
                 let avail_width = ctx
                     .props()
@@ -230,45 +218,47 @@ impl Component for Posts {
                 true
             }
 
-            ImageMessage::LoadPage => {
+            PostMsg::LoadPosts => {
+                self.page = ctx.props().page_number;
                 self.images.clear();
-                self.retrieve_posts(ctx.link());
+                self.retrieve_posts(ctx.link(), ctx.props().query.clone());
                 true
             }
 
-            ImageMessage::QueryImages(fetched_images) => {
-                if self.images.is_empty() {
-                    for image in fetched_images {
-                        self.images.push(Image {
-                            oid: image._id.oid,
-                            state: ImageExpandState::Unfocus,
-                            title: image.title,
-                            author: image.author,
-                            op: image.op,
-                            source: image.source,
-                            resolution: image.resolution,
-                            path: image.path,
-                            stats: image.stats,
-                            time: image.time,
-                            tags: image.tags,
-                            comments: image.comments,
-                            class: "yuri-img".to_string(),
-                            heart_state: ImageLiked::Unliked,
-                            heart_class: "heart".to_string(),
-                        })
-                    }
+            PostMsg::QueryImages(fetched_images) => {
+                for image in fetched_images {
+                    self.images.push(Image {
+                        oid: image._id.oid,
+                        state: ImageExpandState::Unfocus,
+                        title: image.title,
+                        author: image.author,
+                        op: image.op,
+                        source: image.source,
+                        resolution: image.resolution,
+                        path: image.path,
+                        stats: image.stats,
+                        time: image.time,
+                        tags: image.tags,
+                        comments: image.comments,
+                        class: "yuri-img".to_string(),
+                        heart_state: ImageLiked::Unliked,
+                        heart_class: "heart".to_string(),
+                    })
                 }
                 true
             }
 
-            ImageMessage::ShowMore => {
+            PostMsg::ShowMore => {
+                // FIXME bruh just make this the loadpage function bruh
+                let query = ctx.link().location().unwrap().query::<PostQuery>().unwrap();
+                let sort = "new".to_string();
+                let request_builder = format!("{sort}?query={}", query.query);
                 match self.scroll_bottom_buffer {
                     0 => {
                         self.page += 1;
                         let api_request =
-                            format!("/api/view-posts/{}/{}", self.page, self.request_builder);
+                            format!("/api/view-posts/{}/{}", self.page, request_builder);
                         ctx.link().send_future(async move {
-                            // TODO: replace '1' w/ var that changes when scroll and 'new' w/ sort method
                             let fetched_images: Vec<ImageRequest> = Request::get(&api_request)
                                 .send()
                                 .await
@@ -276,7 +266,7 @@ impl Component for Posts {
                                 .json()
                                 .await
                                 .unwrap();
-                            ImageMessage::QueryImages(fetched_images)
+                            PostMsg::QueryImages(fetched_images)
                         });
                         let mut new_image_vec: Vec<Image> = Vec::new();
                         self.images.append(&mut new_image_vec);
@@ -291,7 +281,7 @@ impl Component for Posts {
                 }
             }
 
-            ImageMessage::Like(image_id) => {
+            PostMsg::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
 
                 match image.toggle_like() {
@@ -310,7 +300,7 @@ impl Component for Posts {
                                 .send()
                                 .await
                                 .expect("Failed to send put request (/api/like-post/)");
-                            ImageMessage::None
+                            PostMsg::None
                         })
                     }
                     false => {
@@ -328,14 +318,14 @@ impl Component for Posts {
                                 .send()
                                 .await
                                 .expect("Failed to send put request (/api/unlike-post/)");
-                            ImageMessage::None
+                            PostMsg::None
                         })
                     }
                 };
                 true
             }
 
-            ImageMessage::None => false,
+            PostMsg::None => false,
         }
     }
 
@@ -352,12 +342,10 @@ impl Component for Posts {
             .collect::<Html>();
 
         html! {
-            <>  <center>
-                    <SortButtons/>
-                    <div class={ "images" }>
-                        { posts }
-                    </div>
-                </center>
+            <>
+                <div class={ "images" }>
+                    { posts }
+                </div>
             </>
         }
     }
@@ -365,10 +353,12 @@ impl Component for Posts {
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
         match ctx.props().wheel_position / ctx.props().document_height > 0.8 {
             true => {
-                ctx.link().send_message(ImageMessage::ShowMore);
-                true
+                ctx.link().send_message(PostMsg::LoadPosts);
             }
-            false => true,
+            false => (),
         }
+
+        ctx.link().send_message(PostMsg::LoadPosts);
+        true
     }
 }
