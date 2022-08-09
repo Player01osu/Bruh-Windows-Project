@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use bson::oid::ObjectId;
 // FIXME: Not all of these have to be pub (I think).
 // Find all unnecessary uses of pub
 
@@ -11,7 +12,7 @@ pub struct YuriPosts {
     pub op: String,
     pub tags: Option<Vec<String>>,
     pub path: String,
-    pub comments: Option<Vec<Comment>>,
+    pub comments: ObjectId,
     pub stats: PostStats,
     pub source: Source,
     pub resolution: Resolution,
@@ -71,7 +72,7 @@ pub struct ImageRequest {
     pub path: String,
     pub source: Source,
     pub resolution: Resolution,
-    pub comments: Option<Vec<Comment>>,
+    pub comments: Option<ObjectId>,
 }
 
 impl Default for YuriPosts {
@@ -82,7 +83,7 @@ impl Default for YuriPosts {
             op: "Poster".to_string(),
             tags: None,
             path: "EMPTY".to_string(),
-            comments: None,
+            comments: ObjectId::new(),
             source: Default::default(),
             resolution: Default::default(),
             stats: PostStats::default(),

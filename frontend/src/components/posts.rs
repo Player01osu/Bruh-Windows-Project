@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use web_sys::Element;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef, Properties};
+use bson::oid::ObjectId;
 
 use common::mongodb::structs::{
     Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Source,
@@ -32,7 +33,7 @@ pub struct Image {
     pub op: String,
     pub path: String,
     pub stats: PostStats,
-    pub comments: Option<Vec<Comment>>,
+    pub comments: Option<ObjectId>,
     pub source: Source,
     pub resolution: Resolution,
     pub time: usize,
@@ -41,6 +42,7 @@ pub struct Image {
     pub heart_state: ImageLiked,
     pub heart_class: String,
 }
+
 
 pub struct Posts {
     images: Vec<Image>,
