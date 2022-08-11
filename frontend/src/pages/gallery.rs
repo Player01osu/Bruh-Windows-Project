@@ -33,7 +33,6 @@ impl Gallery {
 
         self.posts = html! {
             <>
-                <SortButtons query={query.clone()}/>
                 <Posts
                     {query}
                     {page_number}
@@ -99,31 +98,28 @@ impl Component for Gallery {
             // FIXME kinda inconsistent
             let scroll_y = wheel_event.view().unwrap().scroll_y().unwrap();
             let page_height = document()
-                .get_element_by_id("loadOnBottom")
+                .get_element_by_id("posts")
                 .expect("Element id not found")
                 .scroll_height();
 
             if scroll_y / page_height as f64 > 0.5 {
-                //self.page_number += 1;
                 GalleryMsg::LoadMore
             } else {
                 GalleryMsg::None
             }
-            //self.document_height = document_height / 1.58;
-            //self.wheel_position = wheel_position * 1.5;
         });
 
         let node_ref = self.node_ref.clone();
         let show_posts = self.posts.clone();
+        let query = self.query.clone();
 
         html! {
             <>
                 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
                 <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-                <div id="loadOnBottom" ref={ node_ref }{ onwheel }>
-                    <center>
-                        { show_posts }
-                    </center>
+                <SortButtons query={query.clone()}/>
+                <div id="posts" ref={ node_ref }{ onwheel }>
+                    { show_posts }
                 </div>
             </>
         }

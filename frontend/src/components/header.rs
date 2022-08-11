@@ -23,9 +23,9 @@ impl Component for Header {
                     </div>
                 </div>
 
-                    <div class={ "nav-header" }>
+                <div class={ "nav-header" }>
 
-                    </div>
+                </div>
             </>
         }
     }

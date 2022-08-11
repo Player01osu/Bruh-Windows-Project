@@ -14,7 +14,6 @@ impl Component for Container {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <div class={"container"}>
-                <Sidebar/>
                 <FileUpload/>
                 <ScrollTop/>
             </div>

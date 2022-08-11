@@ -89,7 +89,7 @@ impl Component for Sidebar {
             SidebarMsg::Toggle => {
                 match self.visibility {
                     SidebarVisibility::Show => {
-                        self.style = "display: none;".to_string();
+                        self.style = "display: none !important;".to_string();
                         body.callback.emit(TemplateMsg::ToggleSidebar);
                         self.visibility = SidebarVisibility::Hidden;
                     }

@@ -145,7 +145,6 @@ impl Posts {
         html! {
             <div class="image-indiv">
                 { buttons }
-                <center>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!(".{}", image.path)}
                     class={format!("{}", image.class)}
@@ -153,7 +152,6 @@ impl Posts {
                     onclick={link.callback(move |_| PostsMsg::ToggleExpando(image_id))}
                     />
                 { tags }
-                </center>
             </div>
         }
     }

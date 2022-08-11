@@ -1,5 +1,5 @@
-use super::header::Header;
-use yew::{html, Callback, Children, Component, Context, ContextProvider, Html, Properties};
+use super::{header::Header,sidebar::Sidebar};
+use yew::{html, Children, Callback, Component, Context, ContextProvider, Html, Properties};
 
 pub struct Template {
     class: String,
@@ -63,7 +63,10 @@ impl Component for Template {
                 <body style="background-color: black;" class={body_style}>
                     <Header/>
                     <ContextProvider<Body> context={body}>
-                        { for ctx.props().children.iter() }
+                        <div class="below">
+                            <Sidebar/>
+                            { for ctx.props().children.iter() }
+                        </div>
                     </ContextProvider<Body>>
                 </body>
             </>

@@ -20,8 +20,8 @@ impl Component for App {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <BrowserRouter>
+                <Container/>
                 <Template>
-                    <Container/>
                         <Switch<Route> render={Switch::render(switch)} />
                 </Template>
             </BrowserRouter>
