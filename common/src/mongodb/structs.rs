@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use bson::oid::ObjectId;
+use uuid::Uuid;
 // FIXME: Not all of these have to be pub (I think).
 // Find all unnecessary uses of pub
 
@@ -31,12 +32,28 @@ pub struct Source {
     pub link: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Default)]
+pub struct CommentSection {
+    #[serde(rename = "_id")]
+    pub oid: ObjectId,
+    pub post_oid: ObjectId,
+    pub comments: Option<Vec<Comment>>,
+}
+
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Comment {
+    #[serde(default = "default_user_id")]
     pub commenter: String,
     pub body: String,
-    pub time: u64,
+}
+
+fn get_unix_time() -> u64 {
+    chrono::Utc::now().timestamp() as u64
+}
+
+fn default_user_id() -> String {
+    Uuid::new_v4().to_string()
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
@@ -92,6 +109,7 @@ impl Default for YuriPosts {
     }
 }
 
+
 impl Default for Resolution {
     fn default() -> Self {
         Self {
@@ -121,7 +139,6 @@ impl Default for Comment {
         Self {
             commenter: "Poster".to_string(),
             body: String::new(),
-            time: 0,
         }
     }
 }

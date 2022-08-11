@@ -6,3 +6,4 @@ pub mod scrolltop;
 pub mod sidebar;
 pub mod sortbuttons;
 pub mod template;
+pub mod commentsupload;

@@ -6,19 +6,24 @@ use yew::{html, Component, Context, Html, NodeRef, Properties};
 use bson::oid::ObjectId;
 
 use common::mongodb::structs::{
-    Comment, ImageExpandState, ImageRequest, PostStats, Resolution, Source,
+    ImageExpandState, ImageRequest, PostStats, Resolution, Source,
 };
+use yew_router::prelude::History;
+use yew_router::scope_ext::RouterScopeExt;
 
-pub enum PostMsg {
+use crate::routes::Route;
+
+pub enum PostsMsg {
     ToggleExpando(usize),
     QueryImages(Vec<ImageRequest>),
     LoadPosts,
     Like(usize),
+    ViewComments(usize),
     None,
 }
 
 #[derive(PartialEq, Properties)]
-pub struct PostProps {
+pub struct PostsProps {
     pub page_number: u16,
     pub query: PostQuery,
     pub gallery_node_ref: NodeRef,
@@ -39,6 +44,7 @@ pub struct Image {
     pub time: usize,
     pub tags: Option<Vec<String>>,
     pub style: String,
+    pub class: String,
     pub heart_state: ImageLiked,
     pub heart_class: String,
 }
@@ -66,11 +72,13 @@ impl Image {
                 //    true => -20,
                 //    false => 0,
                 //};
-                self.style = format!("IMPLEMENT ME");
+                self.style = format!("");
+                self.class = format!("yuri-img-clicked");
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.style = format!("IMPLEMENT ME");
+                self.style = format!("");
+                self.class = format!("yuri-img");
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -93,43 +101,59 @@ impl Image {
 }
 
 impl Posts {
-    pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
-        let buttons = html! {
+    fn view_buttons(image: &Image, image_id: usize, link: &Scope<Self>) -> Html {
+        html!{
             <div class="user-inter">
-                    <button type="button"
+                    <button
+                        type="button"
                         class={format!("{}", image.heart_class)}
-                        onclick={link.callback(move |_| PostMsg::Like(image_id))}>
+                        onclick={link.callback(move |_| PostsMsg::Like(image_id))}
+                    >
                         <ion-icon name="heart-outline"></ion-icon>
                     </button>
-                    <button type="button" class="comments">
+                    <button
+                        type="button"
+                        class="comments"
+                        onclick={link.callback(move |_| PostsMsg::ViewComments(image_id))}
+                    >
                         <ion-icon name="chatbubble-outline"></ion-icon>
                     </button>
             </div>
-        };
+        }
+    }
 
-        let tags = html! {
-                <div class="info">
-                    <p>
-                    {format!("{}", image
-                        .tags
-                        .as_ref()
-                        .unwrap_or(&vec![String::new()])
-                        .join(&", ")
-                    )}
-                    </p>
-                </div>
-        };
+    fn view_tags(image: &Image) -> Html {
+        html!{
+            <div class="info">
+                <p>
+                {format!("{}", image
+                    .tags
+                    .as_ref()
+                    .unwrap_or(&vec![String::new()])
+                    .join(&", ")
+                )}
+                </p>
+            </div>
+        }
+    }
+
+    pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
+        let buttons = Self::view_buttons(image, image_id, link);
+        let tags = Self::view_tags(image);
+
 
         html! {
             <div class="image-indiv">
                 { buttons }
+                <center>
                 <img alt={format!("{} {}", image.author, image.title)}
                     src={format!(".{}", image.path)}
-                    style={format!("{}", image.style)}
+                    class={format!("{}", image.class)}
                     loading="lazy"
-                    onclick={link.callback(move |_| PostMsg::ToggleExpando(image_id))}
+                    onclick={link.callback(move |_| PostsMsg::ToggleExpando(image_id))}
                     />
-            { tags }
+                { tags }
+                </center>
             </div>
         }
     }
@@ -148,7 +172,7 @@ impl Posts {
                     .json()
                     .await
                     .unwrap();
-            PostMsg::QueryImages(fetched_images)
+            PostsMsg::QueryImages(fetched_images)
         });
     }
 }
@@ -166,8 +190,8 @@ fn default_sort() -> String {
 }
 
 impl Component for Posts {
-    type Message = PostMsg;
-    type Properties = PostProps;
+    type Message = PostsMsg;
+    type Properties = PostsProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let posts = Self {
@@ -184,7 +208,7 @@ impl Component for Posts {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            PostMsg::ToggleExpando(image_id) => {
+            PostsMsg::ToggleExpando(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
                 let avail_width = ctx
                     .props()
@@ -197,21 +221,23 @@ impl Component for Posts {
                 true
             }
 
-            PostMsg::LoadPosts => {
+            PostsMsg::LoadPosts => {
                 self.page = ctx.props().page_number;
 
+                // Reset image vector on new page load/changed sort.
                 if self.page == 1 {
                     self.images.clear();
                     self.prev_succeed = true;
                 }
 
+                // Retrieve posts only when the previous attempts succeed.
                 if self.prev_succeed == true {
                     self.retrieve_posts(ctx.link(), ctx.props().query.clone());
                 }
                 true
             }
 
-            PostMsg::QueryImages(fetched_images) => {
+            PostsMsg::QueryImages(fetched_images) => {
                 if !fetched_images.is_empty() {
                     for image in fetched_images {
                         self.images.push(Image {
@@ -228,6 +254,7 @@ impl Component for Posts {
                             tags: image.tags,
                             comments: image.comments,
                             style: "yuri-img".to_string(),
+                            class: "yuri-img".to_string(),
                             heart_state: ImageLiked::Unliked,
                             heart_class: "heart".to_string(),
                         })
@@ -239,7 +266,7 @@ impl Component for Posts {
                 true
             }
 
-            PostMsg::Like(image_id) => {
+            PostsMsg::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
                 let image_oid = image.oid.clone();
 
@@ -261,13 +288,19 @@ impl Component for Posts {
                         .send()
                         .await
                         .expect("Failed to send put request (/api/like-post/)");
-                    PostMsg::None
+                    PostsMsg::None
                 });
 
                 true
             }
 
-            PostMsg::None => false,
+            PostsMsg::ViewComments(image_id) => {
+                let image = self.images.get_mut(image_id).unwrap();
+                ctx.link().history().unwrap().push(Route::Post { post: image.comments.unwrap().to_string() });
+                true
+            }
+
+            PostsMsg::None => false,
         }
     }
 
@@ -293,7 +326,7 @@ impl Component for Posts {
     }
 
     fn changed(&mut self, ctx: &Context<Self>) -> bool {
-        ctx.link().send_message(PostMsg::LoadPosts);
+        ctx.link().send_message(PostsMsg::LoadPosts);
         true
     }
 }

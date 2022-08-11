@@ -1,14 +1,13 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
 use mongodb::bson::{doc, serde_helpers, Document};
-use mongodb::IndexModel;
 use mongodb::{
     options::{ClientOptions, FindOptions},
     Client,
 };
-use serde::{Deserialize, Serialize};
 
 use common::mongodb::structs::*;
+use serde::{Serialize, Deserialize};
 
 // TODO: Implement some sort of way to connect to other collections
 pub enum MongodbCollection {
@@ -71,7 +70,9 @@ impl MongodbDatabase {
             .expect("Failed to unwrap");
     }
 
-    pub async fn mongo_connect() -> mongodb::Collection<YuriPosts> {
+    pub async fn mongo_connect<T>(collection_string: &str) -> mongodb::Collection<T>
+    where T: Serialize
+    {
         // Parse a connection string into an options struct.
         let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
             .await
@@ -92,7 +93,8 @@ impl MongodbDatabase {
         let db = client.database("yuri-web-server");
 
         // Get a handle to a collection in the database.
-        let collection = db.collection::<YuriPosts>("yuriPosts");
+        //let collection = db.collection::<YuriPosts>("yuriPosts");
+        let collection = db.collection::<T>(collection_string);
 
         collection
     }

@@ -1,5 +1,5 @@
 use super::mongo::MongodbDatabase;
-use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts};
+use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts, CommentSection};
 
 use actix_multipart::Multipart;
 use actix_web::{
@@ -16,6 +16,7 @@ use futures_util::TryStreamExt as _;
 use mongodb::{
     bson::{doc, Document},
     options::FindOptions,
+    results::InsertOneResult,
 };
 use serde::{Deserialize, Serialize};
 use std::io::Write;
@@ -145,7 +146,8 @@ pub async fn view_posts(
 
 #[post("/post_image")]
 pub async fn post_image(
-    database: Data<mongodb::Collection<YuriPosts>>,
+    posts_collection: Data<mongodb::Collection<YuriPosts>>,
+    comments_collection: Data<mongodb::Collection<CommentSection>>,
     mut payload: Multipart,
 ) -> actix_web::Result<impl Responder> {
     let utc_now = chrono::Utc::now();
@@ -252,6 +254,8 @@ pub async fn post_image(
         false => op,
     };
 
+    let comment_oid = ObjectId::new();
+
     // TODO: Reference counted?
     let docs = YuriPosts {
         title,
@@ -263,24 +267,45 @@ pub async fn post_image(
         time,
         tags,
         stats,
-        comments: None,
+        comments: comment_oid,
     };
 
-    let oid = database
+    let post_oid = posts_collection
         .insert_one(docs, None)
         .await
         .expect("Handle this error properly u lazy fuck")
         .inserted_id
         .as_object_id()
-        .expect("Could not convert to ObjectId")
-        .to_hex();
+        .expect("Could not convert to ObjectId");
+
+    match create_comment_section(comments_collection, &comment_oid, &post_oid).await {
+        Ok(_) => (),
+        Err(e) => todo!("{e}"),
+    }
+
+    let oid = post_oid.to_hex();
 
     Ok(web::Json(DeleteImageRequest { oid }))
 }
 
+async fn create_comment_section(
+    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    comment_oid: &ObjectId,
+    post_oid: &ObjectId,
+) -> Result<InsertOneResult, mongodb::error::Error> {
+    let comment_section = CommentSection {
+        oid: *comment_oid,
+        post_oid: *post_oid,
+        comments: Some([].to_vec()),
+    };
+
+    comments_collection.insert_one(comment_section, None).await
+}
+
 #[delete("/delete_post")]
 pub async fn delete_post(
-    database: Data<mongodb::Collection<YuriPosts>>,
+    posts_collection: Data<mongodb::Collection<YuriPosts>>,
+    comments_collection: Data<mongodb::Collection<CommentSection>>,
     request: Json<DeleteImageRequest>,
 ) -> HttpResponse {
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
@@ -288,7 +313,7 @@ pub async fn delete_post(
         "_id": oid,
     };
 
-    let post_struct = database
+    let post_struct = posts_collection
         .find_one(filter.clone(), None)
         .await
         .expect("BRO WHAT DA HECK")
@@ -296,7 +321,16 @@ pub async fn delete_post(
 
     std::fs::remove_file(post_struct.path).unwrap_or(eprintln!("Unable to remove file"));
 
-    database.delete_one(filter, None).await.expect("SHITTTT");
+    let post = posts_collection
+        .find_one_and_delete(filter, None)
+        .await
+        .expect("Unable to remove from posts collection")
+        .unwrap();
+
+    let query = doc! {
+        "_id": post.comments,
+    };
+    comments_collection.delete_one(query, None).await.unwrap();
 
     HttpResponse::Ok().body("Deleted")
 }
@@ -339,4 +373,60 @@ pub async fn unlike_post(
         .expect("Failed to remove like");
 
     HttpResponse::Ok().body("HTTP/1.1 201 Updated")
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ViewComments {
+    post_id: String,
+}
+
+#[get("/view-posts/{post_id}")]
+pub async fn view_post_comments(
+    path: Path<ViewComments>,
+    comments_collection: Data<mongodb::Collection<CommentSection>>,
+) -> actix_web::Result<Json<CommentSection>> {
+    let filter = doc! {
+        "_id": ObjectId::parse_str(&path.post_id.as_str()).unwrap(),
+    };
+
+    let comments = match match comments_collection.find_one(filter, None).await {
+        Ok(v) => v,
+        Err(e) => todo!("{e}"),
+    } {
+        Some(v) => v,
+        None => CommentSection::default(),
+    };
+
+    Ok(web::Json(comments))
+}
+
+#[post("/post-comment/{post_id}")]
+pub async fn post_comment(
+    path: Path<ViewComments>,
+    request: Json<Comment>,
+    comments_collection: Data<mongodb::Collection<CommentSection>>,
+) -> actix_web::Result<Json<CommentSection>> {
+    let query = doc! {
+        "_id": ObjectId::parse_str(&path.post_id.as_str()).unwrap(),
+    };
+
+    //let comment = Comment {
+    //    commenter: request.commenter,
+    //    body: request.body,
+    //    time: request.time,
+    //};
+
+    let update = doc! {
+        "$push": { "comments":
+            {
+                "commenter": &request.commenter,
+                "body": &request.body,
+            }
+        }
+    };
+
+    //comments_collection.update_one(query, update, None).await;
+    let comment = comments_collection.find_one_and_update(query, update, None).await.unwrap().unwrap();
+
+    Ok(web::Json(comment))
 }

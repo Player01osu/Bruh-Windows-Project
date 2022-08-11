@@ -1,6 +1,12 @@
+
+html, body {
+    margin: 0;
+    height: 100%;
+}
+
 .navall {
     background-color: rgba(92, 11, 79, 0.5);
-    position: fixed;
+    position: block;
     top: 0px;
     left: 0px;
     bottom: 0px;
@@ -18,7 +24,7 @@
     /* width: 100%;
     height: 100%; */
     /* min-height: 100vh; */
-    padding: 5%;
+    padding: 0%;
     background-image: linear-gradient(rgba(140, 34, 119, 0.9),rgb(97, 9, 148,0.9)), url(../assets/img/Alimari_Touhou_Project.jpg);
     /* background-position: center; */
     background-size: cover;

@@ -8,9 +8,11 @@ edition = "2021"
 [dependencies]
 anyhow = "^1.0"
 bson = "^2.3"
+chrono = "0.4.19"
 compact_str = "^0.4"
 derive_more = "^0.99"
 env_logger = "^0.9"
+uuid = { version = "1.1.2", features = ["v4"] }
 log = "^0.4"
 image = "^0.24"
 serde = { version = "^1.0", features = ["derive"] }
