@@ -133,16 +133,8 @@ impl Component for Sidebar {
 
         html! {
             <>
-                <button style="
-                position: sticky;
-                top: 0;
-                background-color: #c054c2;
-                opacity: 0;
-                width: 120px;
-                font-size: 15px;
-                margin-left:120px;
-                border: none;
-                z-index:100;" {onclick}> {"hide"} </button>
+                <button class="hide-button"
+                {onclick}> {"hide"} </button>
 
                 <div class="navall" style={format!("{}", &self.style)}>
                     <div class="nav">
