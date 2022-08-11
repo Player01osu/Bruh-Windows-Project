@@ -115,8 +115,6 @@ impl Component for Gallery {
 
         html! {
             <>
-                <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-                <script nomodule=true src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
                 <SortButtons query={query.clone()}/>
                 <div id="posts" ref={ node_ref }{ onwheel }>
                     { show_posts }
