@@ -1,5 +1,5 @@
 use super::mongo::MongodbDatabase;
-use common::mongodb::structs::{Comment, PostStats, Resolution, Source, YuriPosts, CommentSection};
+use common::mongodb::structs::{Comment, CommentSection, PostStats, Resolution, Source, YuriPosts};
 
 use actix_multipart::Multipart;
 use actix_web::{
@@ -403,18 +403,16 @@ pub async fn view_post_comments(
 #[post("/post-comment/{post_id}")]
 pub async fn post_comment(
     path: Path<ViewComments>,
-    request: Json<Comment>,
+    mut request: Json<Comment>,
     comments_collection: Data<mongodb::Collection<CommentSection>>,
 ) -> actix_web::Result<Json<CommentSection>> {
     let query = doc! {
         "_id": ObjectId::parse_str(&path.post_id.as_str()).unwrap(),
     };
 
-    //let comment = Comment {
-    //    commenter: request.commenter,
-    //    body: request.body,
-    //    time: request.time,
-    //};
+    if request.commenter.is_empty() {
+        request.commenter = Uuid::new_v4().to_string();
+    }
 
     let update = doc! {
         "$push": { "comments":
@@ -425,8 +423,11 @@ pub async fn post_comment(
         }
     };
 
-    //comments_collection.update_one(query, update, None).await;
-    let comment = comments_collection.find_one_and_update(query, update, None).await.unwrap().unwrap();
+    let comment = comments_collection
+        .find_one_and_update(query, update, None)
+        .await
+        .unwrap()
+        .unwrap();
 
     Ok(web::Json(comment))
 }
