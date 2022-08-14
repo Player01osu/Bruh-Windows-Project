@@ -1,25 +1,26 @@
+use bson::oid::ObjectId;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use web_sys::Element;
 use yew::html::Scope;
 use yew::{html, Component, Context, Html, NodeRef, Properties};
-use bson::oid::ObjectId;
 
-use common::mongodb::structs::{
-    ImageExpandState, ImageRequest, PostStats, Resolution, Source,
-};
+use common::mongodb::structs::{ImageExpandState, ImageRequest, PostStats, Resolution, Source};
 use yew_router::prelude::History;
 use yew_router::scope_ext::RouterScopeExt;
 
 use crate::routes::Route;
 
-pub enum PostsMsg {
-    ToggleExpando(usize),
-    QueryImages(Vec<ImageRequest>),
-    LoadPosts,
-    Like(usize),
-    ViewComments(usize),
-    None,
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+pub struct PostQuery {
+    #[serde(default = "default_sort")]
+    pub sort: String,
+    #[serde(rename = "q", default)]
+    pub query: String,
+}
+
+fn default_sort() -> String {
+    String::from("new")
 }
 
 #[derive(PartialEq, Properties)]
@@ -49,7 +50,6 @@ pub struct Image {
     pub heart_class: String,
 }
 
-
 pub struct Posts {
     images: Vec<Image>,
     page: u16,
@@ -60,6 +60,15 @@ pub struct Posts {
 pub enum ImageLiked {
     Liked,
     Unliked,
+}
+
+pub enum PostsMsg {
+    ToggleExpando(usize),
+    QueryImages(Vec<ImageRequest>),
+    LoadPosts,
+    Like(usize),
+    ViewComments(usize),
+    None,
 }
 
 impl Image {
@@ -102,7 +111,7 @@ impl Image {
 
 impl Posts {
     fn view_buttons(image: &Image, image_id: usize, link: &Scope<Self>) -> Html {
-        html!{
+        html! {
             <div class="user-inter">
                     <button
                         type="button"
@@ -123,7 +132,7 @@ impl Posts {
     }
 
     fn view_tags(image: &Image) -> Html {
-        html!{
+        html! {
             <div class="info">
                 <p>
                 {format!("{}", image
@@ -140,7 +149,6 @@ impl Posts {
     pub fn view_images(&self, image_id: usize, image: &Image, link: &Scope<Self>) -> Html {
         let buttons = Self::view_buttons(image, image_id, link);
         let tags = Self::view_tags(image);
-
 
         html! {
             <div class="image-indiv">
@@ -173,18 +181,6 @@ impl Posts {
             PostsMsg::QueryImages(fetched_images)
         });
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
-pub struct PostQuery {
-    #[serde(default = "default_sort")]
-    pub sort: String,
-    #[serde(rename = "q", default)]
-    pub query: String,
-}
-
-fn default_sort() -> String {
-    String::from("new")
 }
 
 impl Component for Posts {
@@ -294,7 +290,9 @@ impl Component for Posts {
 
             PostsMsg::ViewComments(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
-                ctx.link().history().unwrap().push(Route::Post { post: image.comments.unwrap().to_string() });
+                ctx.link().history().unwrap().push(Route::Post {
+                    post: image.comments.unwrap().to_string(),
+                });
                 true
             }
 

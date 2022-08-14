@@ -1,9 +1,14 @@
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, Html, Properties};
 
 pub struct Header;
 
+#[derive(PartialEq, Properties)]
+pub struct HeaderProps {
+    pub is_collapsed: bool,
+}
+
 impl Component for Header {
-    type Properties = ();
+    type Properties = HeaderProps;
     type Message = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -14,16 +19,26 @@ impl Component for Header {
         true
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let header_all_class = match ctx.props().is_collapsed {
+            false => String::from("header-all-collapsed"),
+            true => String::from("header-all"),
+        };
+
+        let nav_header_class = match ctx.props().is_collapsed {
+            false => String::from("nav-header-collapsed"),
+            true => String::from("nav-header"),
+        };
+
         html! {
             <>
-                <div class={ "header-all" }>
+                <div class={ &header_all_class }>
                     <div class={ "header" }>
                         <h1>{ "Wholesome Yuri" }</h1>
                     </div>
                 </div>
 
-                <div class={ "nav-header" }>
+                <div class={ &nav_header_class }>
 
                 </div>
             </>

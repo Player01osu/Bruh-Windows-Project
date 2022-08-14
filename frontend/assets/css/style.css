@@ -476,3 +476,37 @@ body {
 	border: none;
 	z-index:100;
 }
+
+.post-upload {
+	position: relative;
+	float: right;
+	top: 7vh;
+}
+
+.header-all-collapsed {
+  top: 25px;
+  left: 0px;
+  right: 0px;
+
+  padding-left: 60px;
+
+  position: absolute;
+  background-color: rgba(103, 40, 107);
+  z-index: 11;
+  height: 46px;
+}
+
+.nav-header-collapsed {
+  background-color: rgba(103, 40, 107);
+  /* opacity: 0.7; */
+  position: fixed;
+  top: 0px;
+  height: 25px;
+  right: 0px;
+  left: 0px;
+  z-index: 10;
+}
+
+.sidebar-collapsed {
+	margin-left: -100px;
+}

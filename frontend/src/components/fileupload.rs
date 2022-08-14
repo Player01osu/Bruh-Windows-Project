@@ -165,7 +165,7 @@ impl Component for FileUpload {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <div class="upload">
+            <div class="post-upload">
                 <form id="upload_form"
                     onsubmit={ctx.link().callback(move |event: web_sys::FocusEvent| {
                         event.prevent_default();

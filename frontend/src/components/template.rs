@@ -60,15 +60,15 @@ impl Component for Template {
 
         html! {
             <>
-                <body style="background-color: black;" class={body_style}>
-                    <Header/>
+                <div class={body_style}>
+                    <Header is_collapsed={self.class.is_empty()}/>
                     <ContextProvider<Body> context={body}>
                         <div class="below">
                             <Sidebar/>
                             { for ctx.props().children.iter() }
                         </div>
                     </ContextProvider<Body>>
-                </body>
+                </div>
             </>
         }
     }
