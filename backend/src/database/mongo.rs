@@ -1,22 +1,13 @@
 use actix_web::web::Data;
 use futures::TryStreamExt;
-use mongodb::bson::{doc, serde_helpers, Document};
+use mongodb::bson::Document;
 use mongodb::{
     options::{ClientOptions, FindOptions},
     Client,
 };
 
 use common::mongodb::structs::*;
-use serde::{Serialize, Deserialize};
-
-// TODO: Implement some sort of way to connect to other collections
-pub enum MongodbCollection {
-    Yuriposts(mongodb::Collection<YuriPosts>),
-}
-
-pub enum WebServerdb {
-    YuriPosts,
-}
+use serde::Serialize;
 
 pub struct MongodbDatabase {
     pub collection: Data<mongodb::Collection<YuriPosts>>,
@@ -52,22 +43,6 @@ impl MongodbDatabase {
             paths.push(yuri_posts);
         }
         paths
-    }
-
-    /// Generates a cursor for the collection, iterating through it and
-    /// return one item.
-    pub async fn find_one(&self, filter: Document, find_options: Option<FindOptions>) -> YuriPosts {
-        let mut cursor = self
-            .collection
-            .find(filter, find_options)
-            .await
-            .expect("Failed to generate find cursor");
-
-        return cursor
-            .try_next()
-            .await
-            .expect("Failed to iterate through cursor")
-            .expect("Failed to unwrap");
     }
 
     pub async fn mongo_connect<T>(collection_string: &str) -> mongodb::Collection<T>

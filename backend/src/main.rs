@@ -1,18 +1,24 @@
 mod api;
+mod database;
 mod routing;
 
+use crate::database::mongo::MongodbDatabase;
 use actix_cors::Cors;
 use actix_web::middleware::{self, Logger};
 use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
+use api::comment::{post_comment::post_comment, view_comments::view_post_comments};
+use api::post::{
+    delete_post::delete_post,
+    like_post::{like_post, unlike_post},
+    upload_post::post_image,
+    view_post::view_posts,
+};
 use common::mongodb::structs::YuriPosts;
 use routing::routes;
 use std::path::PathBuf;
 
-use api::task::{delete_post, like_post, post_image, unlike_post, view_posts, view_post_comments, post_comment};
-
-use api::mongo::MongodbDatabase;
 use routes::*;
 
 use common::mongodb::structs::CommentSection;

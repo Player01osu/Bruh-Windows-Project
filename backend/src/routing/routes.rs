@@ -1,17 +1,15 @@
-use actix_web::http::header::ByteRangeSpec;
 use actix_web::{HttpRequest, HttpResponse, Result};
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::{collections::HashMap, fs::File};
 
-use actix_files::NamedFile;
-use actix_web::{web::Bytes, web::Json, web::Path};
-use anyhow::{Context, Ok};
+use actix_web::web::Bytes;
+use anyhow::Ok;
 use serde::{Deserialize, Serialize};
 
 use ahash::RandomState;
 use compact_str::*;
-use dashmap::{DashMap, Map};
+use dashmap::DashMap;
 use once_cell::sync::*;
 
 const STATIC_FILES: &'static str = "static.json";

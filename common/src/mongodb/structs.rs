@@ -48,10 +48,6 @@ pub struct Comment {
     pub body: String,
 }
 
-fn get_unix_time() -> u64 {
-    chrono::Utc::now().timestamp() as u64
-}
-
 fn default_user_id() -> String {
     Uuid::new_v4().to_string()
 }

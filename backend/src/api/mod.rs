@@ -1,2 +1,2 @@
-pub mod mongo;
-pub mod task;
+pub mod comment;
+pub mod post;

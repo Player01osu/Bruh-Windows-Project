@@ -1,9 +1,8 @@
 use crate::components::commentsupload::CommentUpload;
 use common::mongodb::structs::CommentSection;
-use gloo_utils::document;
+
 use reqwasm::http::Request;
-use web_sys::WheelEvent;
-use yew::{html, Component, Context, Html, NodeRef, Properties};
+use yew::{html, Component, Context, Html, Properties};
 
 pub struct Post {
     comments: Html,
