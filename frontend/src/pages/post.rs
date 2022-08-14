@@ -44,7 +44,7 @@ impl Component for Post {
                 self.comments = match comment_section.comments {
                     Some(v) => {
                         if !v.is_empty() {
-                        v
+                            v
                         .into_iter()
                         .map(|f| {
                             let body = f.body;

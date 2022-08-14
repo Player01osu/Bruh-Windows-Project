@@ -1,9 +1,6 @@
 use common::mongodb::structs::{Resolution, Source, YuriPosts};
 
-use actix_web::{
-    web::Json,
-    web::Data,
-};
+use actix_web::{web::Data, web::Json};
 use mongodb::{
     bson::{doc, Document},
     options::FindOptions,
@@ -31,7 +28,6 @@ pub struct LikeImageRequest {
 pub struct TaskIndentifier {
     task_global_id: String,
 }
-
 
 use crate::database::mongo::MongodbDatabase;
 #[derive(Deserialize, Serialize, Debug)]

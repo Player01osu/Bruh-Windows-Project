@@ -1,11 +1,8 @@
-use common::mongodb::structs::{CommentSection, PostStats, Resolution, Source, YuriPosts};
 use crate::api::post::structs::DeleteImageRequest;
+use common::mongodb::structs::{CommentSection, PostStats, Resolution, Source, YuriPosts};
 
 use actix_multipart::Multipart;
-use actix_web::{
-    post, web,
-    web::Data, Responder,
-};
+use actix_web::{post, web, web::Data, Responder};
 use bson::oid::ObjectId;
 use futures_util::TryStreamExt as _;
 use mongodb::results::InsertOneResult;
@@ -24,7 +21,6 @@ async fn create_comment_section(
 
     comments_collection.insert_one(comment_section, None).await
 }
-
 
 #[post("/post_image")]
 pub async fn post_image(
@@ -169,4 +165,3 @@ pub async fn post_image(
 
     Ok(web::Json(DeleteImageRequest { oid }))
 }
-

@@ -1,5 +1,5 @@
+use crate::api::post::structs::{Gallery, SearchQuery, ViewPostsPath};
 use common::mongodb::structs::YuriPosts;
-use crate::api::post::structs::{ViewPostsPath, SearchQuery, Gallery};
 
 use actix_web::{
     get,

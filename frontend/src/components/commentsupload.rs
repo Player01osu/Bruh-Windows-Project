@@ -1,5 +1,5 @@
-use reqwest::Client;
 use reqwasm::http::Request;
+use reqwest::Client;
 use web_sys::{FormData, HtmlFormElement};
 use yew::prelude::*;
 
@@ -19,13 +19,13 @@ impl Component for CommentUpload {
     type Properties = CommentUploadProps;
     type Message = CommentUploadMsg;
 
-    fn create(ctx: &Context<Self>) -> Self { Self
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             CommentUploadMsg::Submit(form) => {
-
                 let comment_id = &ctx.props().post_id;
                 let post_url = format!("http://localhost:7878/api/post-comment/{comment_id}");
 
@@ -33,10 +33,11 @@ impl Component for CommentUpload {
                 let comment_body = form.get("body").as_string().unwrap();
 
                 let body = format!(
-                r#"{{
+                    r#"{{
                     "commenter": "{commenter}",
                     "body": "{comment_body}"
-                }}"#);
+                }}"#
+                );
 
                 ctx.link().send_future(async move {
                     Client::new()
@@ -49,13 +50,12 @@ impl Component for CommentUpload {
                     CommentUploadMsg::None
                 });
                 true
-            },
-            CommentUploadMsg::None => false
+            }
+            CommentUploadMsg::None => false,
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-
         html! {
             <>
                 <div class="comment-upload" style="position: absolute; left: 600px; top: 300px;">

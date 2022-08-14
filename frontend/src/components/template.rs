@@ -1,5 +1,5 @@
-use super::{header::Header,sidebar::Sidebar};
-use yew::{html, Children, Callback, Component, Context, ContextProvider, Html, Properties};
+use super::{header::Header, sidebar::Sidebar};
+use yew::{html, Callback, Children, Component, Context, ContextProvider, Html, Properties};
 
 pub struct Template {
     class: String,

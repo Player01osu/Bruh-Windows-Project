@@ -46,7 +46,8 @@ impl MongodbDatabase {
     }
 
     pub async fn mongo_connect<T>(collection_string: &str) -> mongodb::Collection<T>
-    where T: Serialize
+    where
+        T: Serialize,
     {
         // Parse a connection string into an options struct.
         let mut client_options = ClientOptions::parse("mongodb://localhost:27017")

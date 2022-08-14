@@ -1,3 +1,4 @@
+pub mod commentsupload;
 pub mod container;
 pub mod fileupload;
 pub mod header;
@@ -6,4 +7,3 @@ pub mod scrolltop;
 pub mod sidebar;
 pub mod sortbuttons;
 pub mod template;
-pub mod commentsupload;

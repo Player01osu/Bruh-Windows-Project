@@ -1,10 +1,6 @@
 use common::mongodb::structs::YuriPosts;
 
-use actix_web::{
-    put,
-    web::Json,
-    web::Data, HttpResponse,
-};
+use actix_web::{put, web::Data, web::Json, HttpResponse};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};

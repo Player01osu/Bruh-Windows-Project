@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use bson::oid::ObjectId;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 // FIXME: Not all of these have to be pub (I think).
 // Find all unnecessary uses of pub
@@ -104,7 +104,6 @@ impl Default for YuriPosts {
         }
     }
 }
-
 
 impl Default for Resolution {
     fn default() -> Self {

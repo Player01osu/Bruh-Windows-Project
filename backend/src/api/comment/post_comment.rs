@@ -1,12 +1,7 @@
-use common::mongodb::structs::{Comment, CommentSection};
 use crate::api::comment::structs::ViewComments;
+use common::mongodb::structs::{Comment, CommentSection};
 
-use actix_web::{
-    post, web,
-    web::Json,
-    web::Path,
-    web::Data,
-};
+use actix_web::{post, web, web::Data, web::Json, web::Path};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use uuid::Uuid;

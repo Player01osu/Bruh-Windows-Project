@@ -1,4 +1,6 @@
-use crate::pages::{about::About, gallery::Gallery, home::Home, not_found::NotFound, tags::Tags, post::Post};
+use crate::pages::{
+    about::About, gallery::Gallery, home::Home, not_found::NotFound, post::Post, tags::Tags,
+};
 use yew::{html, Html};
 use yew_router::Routable;
 

@@ -1,11 +1,6 @@
 use common::mongodb::structs::CommentSection;
 
-use actix_web::{
-    get, web,
-    web::Json,
-    web::Path,
-    web::Data,
-};
+use actix_web::{get, web, web::Data, web::Json, web::Path};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 
@@ -30,4 +25,3 @@ pub async fn view_post_comments(
 
     Ok(web::Json(comments))
 }
-
