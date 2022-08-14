@@ -1,7 +1,9 @@
-use crate::components::posts::PostQuery;
-use crate::components::sortbuttons::SortButtons;
+use crate::components::{
+    fileupload::FileUpload,
+    posts::{PostQuery, Posts},
+    sortbuttons::SortButtons,
+};
 
-use crate::components::posts::Posts;
 use gloo_utils::document;
 use web_sys::WheelEvent;
 use yew::{html, Component, Context, Html, NodeRef};
@@ -116,6 +118,7 @@ impl Component for Gallery {
         html! {
             <>
                 <SortButtons query={query.clone()}/>
+                <FileUpload/>
                 <div id="posts" ref={ node_ref }{ onwheel }>
                     { show_posts }
                 </div>

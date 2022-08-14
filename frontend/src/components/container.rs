@@ -1,4 +1,4 @@
-use super::{fileupload::FileUpload, scrolltop::ScrollTop, sidebar::Sidebar};
+use super::scrolltop::ScrollTop;
 use yew::{html, Component, Context, Html};
 
 pub struct Container;
@@ -14,7 +14,6 @@ impl Component for Container {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <div class={"container"}>
-                <FileUpload/>
                 <ScrollTop/>
             </div>
         }
