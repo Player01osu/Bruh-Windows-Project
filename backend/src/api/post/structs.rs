@@ -49,7 +49,6 @@ pub struct SearchQuery {
 
 pub struct Gallery {
     pub show: Option<Json<Vec<Document>>>,
-    search_filters: Option<Vec<String>>,
     amount: u16,
 }
 
@@ -59,7 +58,6 @@ impl Gallery {
     pub fn new(amount: u16) -> Gallery {
         let generated = Gallery {
             show: None,
-            search_filters: None,
             amount,
         };
         generated
