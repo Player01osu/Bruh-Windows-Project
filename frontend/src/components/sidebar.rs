@@ -1,6 +1,6 @@
 use crate::Route;
 use web_sys::{FormData, HtmlFormElement};
-use yew::{html, html::Scope, Callback, Component, Context, Html, Properties, TargetCast};
+use yew::{html, Callback, Component, Context, Html, TargetCast};
 use yew_router::prelude::*;
 
 use super::{
@@ -136,7 +136,7 @@ impl Component for Sidebar {
                 <button class="hide-button"
                 {onclick}> {"hide"} </button>
 
-                <div class="navall" style={format!("{}", &self.style)}>
+                <div class="navall" style={(&self.style).to_string()}>
                     <div class="nav">
                             <form
                                 action=""

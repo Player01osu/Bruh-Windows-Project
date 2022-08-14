@@ -117,7 +117,7 @@ impl Component for Gallery {
 
         html! {
             <>
-                <SortButtons query={query.clone()}/>
+                <SortButtons query={query}/>
                 <FileUpload/>
                 <div id="posts" ref={ node_ref }{ onwheel }>
                     { show_posts }

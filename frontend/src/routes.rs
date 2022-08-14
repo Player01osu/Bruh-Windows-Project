@@ -4,7 +4,7 @@ use crate::pages::{
 use yew::{html, Html};
 use yew_router::Routable;
 
-#[derive(Clone, Routable, PartialEq)]
+#[derive(Clone, Routable, PartialEq, Eq)]
 pub enum Route {
     #[at("/")]
     Home,

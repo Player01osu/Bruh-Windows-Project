@@ -5,7 +5,7 @@ use uuid::Uuid;
 // Find all unnecessary uses of pub
 
 // TODO: Reference counted to avoid large amounts of cloning?
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct YuriPosts {
     pub title: String,
@@ -20,13 +20,13 @@ pub struct YuriPosts {
     pub time: u64,
 }
 
-#[derive(PartialEq, Debug, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Deserialize, Serialize)]
 pub struct Resolution {
     pub width: usize,
     pub height: usize,
 }
 
-#[derive(PartialEq, Debug, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Deserialize, Serialize)]
 pub struct Source {
     pub material: String,
     pub link: Option<String>,
@@ -40,7 +40,7 @@ pub struct CommentSection {
     pub comments: Option<Vec<Comment>>,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Comment {
     #[serde(default = "default_user_id")]
@@ -52,14 +52,14 @@ fn default_user_id() -> String {
     Uuid::new_v4().to_string()
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PostStats {
     pub likes: u64,
     pub views: u64,
 }
 
-#[derive(Clone, PartialEq, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Deserialize, Debug)]
 pub enum ImageExpandState {
     Unfocus,
     Focus,

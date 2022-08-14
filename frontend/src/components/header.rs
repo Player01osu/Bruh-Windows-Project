@@ -2,7 +2,7 @@ use yew::{html, Component, Context, Html, Properties};
 
 pub struct Header;
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Eq, Properties)]
 pub struct HeaderProps {
     pub is_collapsed: bool,
 }

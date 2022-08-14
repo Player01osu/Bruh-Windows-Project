@@ -61,7 +61,7 @@ impl SortButtons {
     }
 }
 
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, PartialEq, Eq, Clone)]
 pub struct SortButtonsProps {
     pub query: PostQuery,
 }

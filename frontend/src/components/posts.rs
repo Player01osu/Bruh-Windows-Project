@@ -11,7 +11,7 @@ use yew_router::scope_ext::RouterScopeExt;
 
 use crate::routes::Route;
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 pub struct PostQuery {
     #[serde(default = "default_sort")]
     pub sort: String,
@@ -30,7 +30,7 @@ pub struct PostsProps {
     pub gallery_node_ref: NodeRef,
 }
 
-#[derive(Clone, PartialEq, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Eq, Deserialize, Debug)]
 pub struct Image {
     pub oid: String,
     pub state: ImageExpandState,
@@ -56,7 +56,7 @@ pub struct Posts {
     prev_succeed: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 pub enum ImageLiked {
     Liked,
     Unliked,
@@ -81,13 +81,13 @@ impl Image {
                 //    true => -20,
                 //    false => 0,
                 //};
-                self.style = format!("");
-                self.class = format!("yuri-img-clicked");
+                self.style = String::new();
+                self.class = "yuri-img-clicked".to_string();
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.style = format!("");
-                self.class = format!("yuri-img");
+                self.style = String::new();
+                self.class = "yuri-img".to_string();
                 self.state = ImageExpandState::Unfocus
             }
         }
@@ -135,12 +135,11 @@ impl Posts {
         html! {
             <div class="info">
                 <p>
-                {format!("{}", image
+                {image
                     .tags
                     .as_ref()
                     .unwrap_or(&vec![String::new()])
-                    .join(&", ")
-                )}
+                    .join(", ").to_string()}
                 </p>
             </div>
         }
@@ -225,7 +224,7 @@ impl Component for Posts {
                 }
 
                 // Retrieve posts only when the previous attempts succeed.
-                if self.prev_succeed == true {
+                if self.prev_succeed {
                     self.retrieve_posts(ctx.link(), ctx.props().query.clone());
                 }
                 true

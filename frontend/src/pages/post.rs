@@ -8,7 +8,7 @@ pub struct Post {
     comments: Html,
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Eq, Properties)]
 pub struct PostProps {
     pub post_id: String,
 }
@@ -38,7 +38,7 @@ impl Component for Post {
         Self { comments: html! {} }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             PostMsg::ProcessComments(comment_section) => {
                 self.comments = match comment_section.comments {

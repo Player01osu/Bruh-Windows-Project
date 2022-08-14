@@ -1,4 +1,4 @@
-use reqwasm::http::Request;
+
 use reqwest::Client;
 use web_sys::{FormData, HtmlFormElement};
 use yew::prelude::*;
@@ -10,7 +10,7 @@ pub enum CommentUploadMsg {
     None,
 }
 
-#[derive(PartialEq, Properties)]
+#[derive(PartialEq, Eq, Properties)]
 pub struct CommentUploadProps {
     pub post_id: String,
 }
@@ -19,7 +19,7 @@ impl Component for CommentUpload {
     type Properties = CommentUploadProps;
     type Message = CommentUploadMsg;
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self
     }
 
