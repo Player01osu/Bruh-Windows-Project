@@ -1,9 +1,9 @@
-use crate::{api::post::structs::DeleteImageRequest, database::mongo::{self, MongodbDatabase, CollectionList}};
+use crate::{api::post::structs::DeleteImageRequest, database::mongo::{MongodbDatabase, CollectionList}};
 use common::mongodb::structs::{CommentSection, YuriPosts};
 
 use actix_web::{delete, web::Data, web::Json, HttpResponse};
 use bson::oid::ObjectId;
-use mongodb::{bson::doc, Database};
+use mongodb::bson::doc;
 
 #[delete("/delete_post")]
 pub async fn delete_post(
