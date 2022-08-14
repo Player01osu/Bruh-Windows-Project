@@ -1,4 +1,4 @@
-use crate::api::post::structs::DeleteImageRequest;
+use crate::{api::post::structs::DeleteImageRequest, database::mongo::{MongodbDatabase, CollectionList}};
 use common::mongodb::structs::{CommentSection, PostStats, Resolution, Source, YuriPosts};
 
 use actix_multipart::Multipart;
@@ -9,7 +9,7 @@ use mongodb::results::InsertOneResult;
 use std::io::Write;
 
 async fn create_comment_section(
-    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    comments_collection: mongodb::Collection<CommentSection>,
     comment_oid: &ObjectId,
     post_oid: &ObjectId,
 ) -> Result<InsertOneResult, mongodb::error::Error> {
@@ -24,8 +24,7 @@ async fn create_comment_section(
 
 #[post("/post_image")]
 pub async fn post_image(
-    posts_collection: Data<mongodb::Collection<YuriPosts>>,
-    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    database: Data<MongodbDatabase>,
     mut payload: Multipart,
 ) -> actix_web::Result<impl Responder> {
     let utc_now = chrono::Utc::now();
@@ -147,6 +146,9 @@ pub async fn post_image(
         stats,
         comments: comment_oid,
     };
+
+    let posts_collection = database.collection::<YuriPosts>(CollectionList::Posts);
+    let comments_collection = database.collection::<CommentSection>(CollectionList::Comments);
 
     let post_oid = posts_collection
         .insert_one(docs, None)

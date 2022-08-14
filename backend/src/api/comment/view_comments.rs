@@ -4,13 +4,14 @@ use actix_web::{get, web, web::Data, web::Json, web::Path};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 
-use crate::api::comment::structs::ViewComments;
+use crate::{api::comment::structs::ViewComments, database::mongo::{MongodbDatabase, CollectionList}};
 
 #[get("/view-posts/{post_id}")]
 pub async fn view_post_comments(
     path: Path<ViewComments>,
-    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    database: Data<MongodbDatabase>,
 ) -> actix_web::Result<Json<CommentSection>> {
+    let comments_collection = database.collection::<CommentSection>(CollectionList::Comments);
     let filter = doc! {
         "_id": ObjectId::parse_str(&path.post_id.as_str()).unwrap(),
     };

@@ -1,20 +1,22 @@
-use crate::api::post::structs::DeleteImageRequest;
+use crate::{api::post::structs::DeleteImageRequest, database::mongo::{self, MongodbDatabase, CollectionList}};
 use common::mongodb::structs::{CommentSection, YuriPosts};
 
 use actix_web::{delete, web::Data, web::Json, HttpResponse};
 use bson::oid::ObjectId;
-use mongodb::bson::doc;
+use mongodb::{bson::doc, Database};
 
 #[delete("/delete_post")]
 pub async fn delete_post(
-    posts_collection: Data<mongodb::Collection<YuriPosts>>,
-    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    database: Data<MongodbDatabase>,
     request: Json<DeleteImageRequest>,
 ) -> HttpResponse {
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
     let filter = doc! {
         "_id": oid,
     };
+
+    let posts_collection = database.collection::<YuriPosts>(CollectionList::Posts);
+    let comments_collection = database.collection::<CommentSection>(CollectionList::Comments);
 
     let post_struct = posts_collection
         .find_one(filter.clone(), None)

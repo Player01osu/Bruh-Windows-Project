@@ -15,13 +15,10 @@ use api::post::{
     upload_post::post_image,
     view_post::view_posts,
 };
-use common::mongodb::structs::YuriPosts;
 use routing::routes;
 use std::path::PathBuf;
 
 use routes::*;
-
-use common::mongodb::structs::CommentSection;
 
 fn main() -> anyhow::Result<()> {
     init()
@@ -43,16 +40,12 @@ pub async fn run() -> std::io::Result<()> {
         response: not_found_page,
     };
     ROUTEMAP.insert("{{404}}".into(), route_handle);
-
-    let (posts_collection, comments_collection) = futures::join!(
-        MongodbDatabase::mongo_connect::<YuriPosts>("yuriPosts"),
-        MongodbDatabase::mongo_connect::<CommentSection>("yuriComments"),
-    );
+    let database = MongodbDatabase::mongo_connect().await;
 
     HttpServer::new(move || {
-        let posts_collection = Data::new(posts_collection.clone());
-        let comments_collection = Data::new(comments_collection.clone());
         let logger = Logger::default();
+        let database = database.clone();
+        let database = Data::new(database);
         let cors = Cors::permissive(); // FIXME: uhhhhhhhh, change this
 
         let app_instance = App::new()
@@ -61,8 +54,7 @@ pub async fn run() -> std::io::Result<()> {
             .wrap(middleware::NormalizePath::new(
                 middleware::TrailingSlash::Trim,
             ))
-            .app_data(posts_collection)
-            .app_data(comments_collection)
+            .app_data(database)
             // Load assets
             .service(actix_files::Files::new("/assets", "static/assets"))
             .service(

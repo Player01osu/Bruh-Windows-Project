@@ -1,4 +1,7 @@
-use crate::api::comment::structs::ViewComments;
+use crate::{
+    api::comment::structs::ViewComments,
+    database::mongo::{CollectionList, MongodbDatabase},
+};
 use common::mongodb::structs::{Comment, CommentSection};
 
 use actix_web::{post, web, web::Data, web::Json, web::Path};
@@ -10,8 +13,9 @@ use uuid::Uuid;
 pub async fn post_comment(
     path: Path<ViewComments>,
     mut request: Json<Comment>,
-    comments_collection: Data<mongodb::Collection<CommentSection>>,
+    database: Data<MongodbDatabase>,
 ) -> actix_web::Result<Json<CommentSection>> {
+    let comments_collection = database.collection::<CommentSection>(CollectionList::Comments);
     let query = doc! {
         "_id": ObjectId::parse_str(&path.post_id.as_str()).unwrap(),
     };

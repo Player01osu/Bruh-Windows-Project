@@ -1,6 +1,7 @@
-use common::mongodb::structs::{Resolution, Source, YuriPosts};
+use common::mongodb::structs::{Resolution, Source};
 
-use actix_web::{web::Data, web::Json};
+use actix_web::web::Json;
+use futures::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
     options::FindOptions,
@@ -29,7 +30,6 @@ pub struct TaskIndentifier {
     task_global_id: String,
 }
 
-use crate::database::mongo::MongodbDatabase;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DeleteImageRequest {
     pub oid: String,
@@ -53,6 +53,8 @@ pub struct Gallery {
     amount: u16,
 }
 
+const LIMIT: i64 = 10i64;
+
 impl Gallery {
     pub fn new(amount: u16) -> Gallery {
         let generated = Gallery {
@@ -65,11 +67,10 @@ impl Gallery {
 
     pub async fn gen_gallery(
         &mut self,
-        database: Data<mongodb::Collection<YuriPosts>>,
+        database: mongodb::Collection<Document>,
         sort: &String,
         query: &String,
-    ) -> &mut Self {
-        let database = MongodbDatabase::new(database);
+    ) {
         let sort = match sort.as_str() {
             "new" => String::from("time"),
             "top" => String::from("stats.likes"),
@@ -77,7 +78,6 @@ impl Gallery {
             _ => String::from("time"),
         };
         let skip_amount = u32::from(self.amount - 10);
-        let limit = i64::from(self.amount);
 
         let filter = Some(doc! {
             "$or": [
@@ -91,12 +91,17 @@ impl Gallery {
         let find_options = Some(
             FindOptions::builder()
                 .skip(u64::from(skip_amount))
-                .limit(limit)
+                .limit(LIMIT)
                 .sort(doc! {sort: -1, "time": -1})
                 .build(),
         );
 
-        let paths = database.find(filter, find_options).await;
+        let mut cursor = database.find(filter, find_options).await.unwrap();
+        let mut paths: Vec<Document> = Vec::new();
+
+        while let Some(yuri_posts) = cursor.try_next().await.unwrap() {
+            paths.push(yuri_posts);
+        };
 
         match !paths.is_empty() {
             true => {
@@ -107,6 +112,6 @@ impl Gallery {
                 self.show = None;
                 self
             }
-        }
+        };
     }
 }

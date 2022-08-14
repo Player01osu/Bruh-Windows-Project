@@ -5,6 +5,8 @@ use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 
+use crate::database::mongo::{MongodbDatabase, CollectionList};
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LikeImageRequest {
     oid: String,
@@ -13,7 +15,7 @@ pub struct LikeImageRequest {
 #[put("/like-post")]
 pub async fn like_post(
     request: Json<LikeImageRequest>,
-    database: Data<mongodb::Collection<YuriPosts>>,
+    database: Data<MongodbDatabase>,
 ) -> HttpResponse {
     // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
@@ -21,8 +23,9 @@ pub async fn like_post(
         "_id": oid,
     };
     let add_like = doc! { "$inc": { "stats.likes": 1 } };
+    let posts_collection = database.collection::<YuriPosts>(CollectionList::Posts);
 
-    database
+    posts_collection
         .update_one(filter, add_like, None)
         .await
         .expect("Failed to add like");
@@ -33,7 +36,7 @@ pub async fn like_post(
 #[put("/unlike-post")]
 pub async fn unlike_post(
     request: Json<LikeImageRequest>,
-    database: Data<mongodb::Collection<YuriPosts>>,
+    database: Data<MongodbDatabase>,
 ) -> HttpResponse {
     // Parse oid into ObjectId object type
     let oid = ObjectId::parse_str(&request.oid.as_str()).unwrap();
@@ -41,8 +44,9 @@ pub async fn unlike_post(
         "_id": oid,
     };
     let remove_like = doc! { "$inc": { "stats.likes": -1 } };
+    let posts_collection = database.collection::<YuriPosts>(CollectionList::Posts);
 
-    database
+    posts_collection
         .update_one(filter, remove_like, None)
         .await
         .expect("Failed to remove like");

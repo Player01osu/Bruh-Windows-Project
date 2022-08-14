@@ -1,77 +1,48 @@
-use actix_web::web::Data;
-use futures::TryStreamExt;
-use mongodb::bson::Document;
-use mongodb::{
-    options::{ClientOptions, FindOptions},
-    Client,
-};
+use mongodb::{Client, Collection, Database};
 
-use common::mongodb::structs::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
+#[derive(Clone)]
 pub struct MongodbDatabase {
-    pub collection: Data<mongodb::Collection<YuriPosts>>,
+    pub database: Database,
 }
 
+pub enum CollectionList {
+    Posts,
+    Comments,
+}
+
+/// Abstracted database with fixed collections
 impl MongodbDatabase {
-    pub fn new(collection: Data<mongodb::Collection<YuriPosts>>) -> MongodbDatabase {
-        let mongodb_collection = MongodbDatabase { collection };
+    pub async fn mongo_connect() -> Self {
+        let uri =
+            std::env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".into());
 
-        mongodb_collection
+        let client = Client::with_uri_str(uri).await.expect("failed to connect");
+        let database = client.database("yuri-web-server");
+        Self {
+            database
+        }
     }
 
-    /// Generates a cursor for the collection, iterating through it and
-    /// pushing its results to the vector for n amount of items.
-    pub async fn find(
+    /// Returns a collection handle.
+    /// If generic is specified, the generic
+    /// struct must impliment serialize and
+    /// deserialize.
+    pub fn collection<'a, T>(
         &self,
-        filter: Option<Document>,
-        find_options: Option<FindOptions>,
-    ) -> Vec<Document> {
-        let database: mongodb::Collection<Document> = self.collection.clone_with_type();
-        let mut cursor = database
-            .find(filter, find_options)
-            .await
-            .expect("Failed to generate find cursor");
-        let mut paths: Vec<Document> = Vec::new();
-
-        while let Some(yuri_posts) = cursor
-            .try_next()
-            .await
-            .expect("Failed to iterate through cursor")
-        {
-            println!("path: {}", yuri_posts);
-            paths.push(yuri_posts);
-        }
-        paths
-    }
-
-    pub async fn mongo_connect<T>(collection_string: &str) -> mongodb::Collection<T>
+        collection: CollectionList,
+    ) -> Collection<T>
     where
-        T: Serialize,
+        T: Serialize + Deserialize<'a>,
     {
-        // Parse a connection string into an options struct.
-        let mut client_options = ClientOptions::parse("mongodb://localhost:27017")
-            .await
-            .expect("bruh");
-
-        // Manually set an option.
-        client_options.app_name = Some("My App".to_string());
-
-        // Get a handle to the deployment.
-        let client = Client::with_options(client_options).expect("bruh");
-
-        // List the names of the databases in that deployment.
-        for db_name in client.list_database_names(None, None).await.expect("bruh") {
-            println!("{} big poo time", db_name);
+        match collection {
+            CollectionList::Posts => {
+                    self.database.collection::<T>("yuriPosts")
+            },
+            CollectionList::Comments => {
+                    self.database.collection::<T>("yuriComments")
+            }
         }
-
-        // Get a handle to a database.
-        let db = client.database("yuri-web-server");
-
-        // Get a handle to a collection in the database.
-        //let collection = db.collection::<YuriPosts>("yuriPosts");
-        let collection = db.collection::<T>(collection_string);
-
-        collection
     }
 }
