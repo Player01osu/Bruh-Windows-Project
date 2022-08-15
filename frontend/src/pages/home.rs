@@ -1,28 +1,13 @@
 use yew::{html, Component, Context, Html};
 
-pub enum HomeMsg {
-    LoadPage(Html),
-}
-
-pub struct Home {
-    page: Html,
-}
+pub struct Home;
 
 impl Component for Home {
-    type Message = HomeMsg;
+    type Message = ();
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { page: html! {} }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            HomeMsg::LoadPage(page_html) => {
-                self.page = page_html;
-                true
-            }
-        }
+        Self
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
