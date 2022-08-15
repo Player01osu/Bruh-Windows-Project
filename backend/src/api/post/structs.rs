@@ -56,10 +56,7 @@ const LIMIT: i64 = 10i64;
 
 impl Gallery {
     pub fn new(amount: u16) -> Gallery {
-        Gallery {
-            show: None,
-            amount,
-        }
+        Gallery { show: None, amount }
     }
 
     pub async fn gen_gallery(
@@ -98,7 +95,7 @@ impl Gallery {
 
         while let Some(yuri_posts) = cursor.try_next().await.unwrap() {
             paths.push(yuri_posts);
-        };
+        }
 
         match !paths.is_empty() {
             true => {

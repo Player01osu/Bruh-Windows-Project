@@ -1,6 +1,6 @@
 use mongodb::{Client, Collection, Database};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct MongodbDatabase {
@@ -20,29 +20,20 @@ impl MongodbDatabase {
 
         let client = Client::with_uri_str(uri).await.expect("failed to connect");
         let database = client.database("yuri-web-server");
-        Self {
-            database
-        }
+        Self { database }
     }
 
     /// Returns a collection handle.
     /// If generic is specified, the generic
     /// struct must impliment serialize and
     /// deserialize.
-    pub fn collection<'a, T>(
-        &self,
-        collection: CollectionList,
-    ) -> Collection<T>
+    pub fn collection<'a, T>(&self, collection: CollectionList) -> Collection<T>
     where
         T: Serialize + Deserialize<'a>,
     {
         match collection {
-            CollectionList::Posts => {
-                    self.database.collection::<T>("yuriPosts")
-            },
-            CollectionList::Comments => {
-                    self.database.collection::<T>("yuriComments")
-            }
+            CollectionList::Posts => self.database.collection::<T>("yuriPosts"),
+            CollectionList::Comments => self.database.collection::<T>("yuriComments"),
         }
     }
 }

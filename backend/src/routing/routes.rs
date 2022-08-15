@@ -39,9 +39,7 @@ pub async fn router(req: HttpRequest) -> Result<HttpResponse> {
         Some(handler) => {
             let handler = handler.value();
 
-            core::result::Result::Ok(
-                HttpResponse::Ok().body(handler.response.bytes.to_owned()),
-            )
+            core::result::Result::Ok(HttpResponse::Ok().body(handler.response.bytes.to_owned()))
         }
         None => {
             let not_found_handler = ROUTEMAP
@@ -50,9 +48,7 @@ pub async fn router(req: HttpRequest) -> Result<HttpResponse> {
             let handle = not_found_handler.value();
             let not_found_response = &handle.response.bytes;
 
-            core::result::Result::Ok(
-                HttpResponse::NotFound().body(not_found_response.to_owned()),
-            )
+            core::result::Result::Ok(HttpResponse::NotFound().body(not_found_response.to_owned()))
         }
     }
 }

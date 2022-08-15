@@ -5,7 +5,7 @@ use bson::oid::ObjectId;
 use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 
-use crate::database::mongo::{MongodbDatabase, CollectionList};
+use crate::database::mongo::{CollectionList, MongodbDatabase};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LikeImageRequest {

@@ -4,7 +4,10 @@ use actix_web::{get, web, web::Data, web::Json, web::Path};
 use bson::oid::ObjectId;
 use mongodb::bson::doc;
 
-use crate::{api::comment::structs::ViewComments, database::mongo::{MongodbDatabase, CollectionList}};
+use crate::{
+    api::comment::structs::ViewComments,
+    database::mongo::{CollectionList, MongodbDatabase},
+};
 
 #[get("/view-posts/{post_id}")]
 pub async fn view_post_comments(

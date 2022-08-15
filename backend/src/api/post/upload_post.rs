@@ -1,4 +1,7 @@
-use crate::{api::post::structs::DeleteImageRequest, database::mongo::{MongodbDatabase, CollectionList}};
+use crate::{
+    api::post::structs::DeleteImageRequest,
+    database::mongo::{CollectionList, MongodbDatabase},
+};
 use common::mongodb::structs::{CommentSection, PostStats, Resolution, Source, YuriPosts};
 
 use actix_multipart::Multipart;

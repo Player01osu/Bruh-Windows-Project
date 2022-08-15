@@ -1,4 +1,3 @@
-
 use reqwest::Client;
 use web_sys::{FormData, HtmlFormElement};
 use yew::prelude::*;
