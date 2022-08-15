@@ -75,18 +75,12 @@ impl Image {
     pub fn toggle_expand(&mut self, _avail_width: i32) {
         match &self.state {
             ImageExpandState::Unfocus => {
-                //let avail_width = avail_width as f32 * 0.71;
-
-                //let margin_left = match self.resolution.width > 510 {
-                //    true => -20,
-                //    false => 0,
-                //};
-                self.style = String::new();
+                self.style.clear();
                 self.class = "yuri-img-clicked".to_string();
                 self.state = ImageExpandState::Focus
             }
             ImageExpandState::Focus => {
-                self.style = String::new();
+                self.style.clear();
                 self.class = "yuri-img".to_string();
                 self.state = ImageExpandState::Unfocus
             }

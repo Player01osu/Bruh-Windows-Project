@@ -132,7 +132,7 @@ impl Component for Sidebar {
                         self.visibility = SidebarVisibility::Hidden;
                     }
                     SidebarVisibility::Hidden => {
-                        self.style = String::default();
+                        self.style.clear();
                         body.callback.emit(TemplateMsg::ToggleSidebar);
                         self.visibility = SidebarVisibility::Show;
                     }

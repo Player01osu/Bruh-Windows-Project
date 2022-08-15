@@ -37,11 +37,11 @@ impl Component for Template {
             TemplateMsg::ToggleSidebar => {
                 match self.sidebar_toggle {
                     true => {
-                        self.class = "sidebar-collapsed".to_string();
+                        self.class = String::from("sidebar-collapsed");
                         self.sidebar_toggle = false;
                     }
                     false => {
-                        self.class = String::default();
+                        self.class.clear();
                         self.sidebar_toggle = true;
                     }
                 }
