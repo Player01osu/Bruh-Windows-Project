@@ -52,7 +52,7 @@ fn default_user_id() -> String {
     Uuid::new_v4().to_string()
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PostStats {
     pub likes: u64,
@@ -120,12 +120,6 @@ impl Default for Source {
             material: "None".to_string(),
             link: None,
         }
-    }
-}
-
-impl Default for PostStats {
-    fn default() -> Self {
-        Self { likes: 0, views: 0 }
     }
 }
 

@@ -12,7 +12,7 @@ use compact_str::*;
 use dashmap::DashMap;
 use once_cell::sync::*;
 
-const STATIC_FILES: &'static str = "static.json";
+const STATIC_FILES: &str = "static.json";
 
 #[derive(Deserialize, Serialize, Default)]
 pub struct Static {
@@ -39,9 +39,9 @@ pub async fn router(req: HttpRequest) -> Result<HttpResponse> {
         Some(handler) => {
             let handler = handler.value();
 
-            return core::result::Result::Ok(
+            core::result::Result::Ok(
                 HttpResponse::Ok().body(handler.response.bytes.to_owned()),
-            );
+            )
         }
         None => {
             let not_found_handler = ROUTEMAP
@@ -50,11 +50,11 @@ pub async fn router(req: HttpRequest) -> Result<HttpResponse> {
             let handle = not_found_handler.value();
             let not_found_response = &handle.response.bytes;
 
-            return core::result::Result::Ok(
+            core::result::Result::Ok(
                 HttpResponse::NotFound().body(not_found_response.to_owned()),
-            );
+            )
         }
-    };
+    }
 }
 
 impl StaticFile {
@@ -83,7 +83,7 @@ impl RouteHandle {
     fn add_routes(routing_list: &HashMap<String, PathBuf>) -> anyhow::Result<()> {
         for (route, path) in routing_list {
             let route_handle = RouteHandle {
-                response: StaticFile::create(&path)?,
+                response: StaticFile::create(path)?,
             };
 
             let mut route_fmt = route.chars();

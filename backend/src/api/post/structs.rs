@@ -56,20 +56,19 @@ const LIMIT: i64 = 10i64;
 
 impl Gallery {
     pub fn new(amount: u16) -> Gallery {
-        let generated = Gallery {
+        Gallery {
             show: None,
             amount,
-        };
-        generated
+        }
     }
 
     pub async fn gen_gallery(
         &mut self,
         database: mongodb::Collection<Document>,
-        sort: &String,
+        sort: &str,
         query: &String,
     ) {
-        let sort = match sort.as_str() {
+        let sort = match sort {
             "new" => String::from("time"),
             "top" => String::from("stats.likes"),
             "views" => String::from("stats.views"),
