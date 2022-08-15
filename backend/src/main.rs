@@ -1,11 +1,9 @@
 mod api;
 mod database;
-mod routing;
 
 use crate::database::mongo::MongodbDatabase;
 use actix_cors::Cors;
 use actix_web::middleware::{self, Logger};
-use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use api::comment::{post_comment::post_comment, view_comments::view_post_comments};
@@ -15,31 +13,14 @@ use api::post::{
     upload_post::post_image,
     view_post::view_posts,
 };
-use routing::routes;
-use std::path::PathBuf;
-
-use routes::*;
-
-fn main() -> anyhow::Result<()> {
-    init()
-}
 
 #[actix_web::main]
-pub async fn run() -> std::io::Result<()> {
+async fn main() -> std::io::Result<()> {
     // Logging
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    // Insert 404 Page Not Found
-    let not_found_page = StaticFile {
-        bytes: Bytes::from(include_bytes!("./static/404.html").to_vec()),
-        path: PathBuf::from("static/404.html"),
-    };
-    let route_handle = RouteHandle {
-        response: not_found_page,
-    };
-    ROUTEMAP.insert("{{404}}".into(), route_handle);
     let database = MongodbDatabase::mongo_connect().await;
 
     HttpServer::new(move || {
@@ -55,8 +36,6 @@ pub async fn run() -> std::io::Result<()> {
                 middleware::TrailingSlash::Trim,
             ))
             .app_data(database)
-            // Load assets
-            .service(actix_files::Files::new("/assets", "static/assets"))
             .service(
                 web::scope("/api")
                     .service(view_posts)
@@ -66,8 +45,7 @@ pub async fn run() -> std::io::Result<()> {
                     .service(unlike_post)
                     .service(view_post_comments)
                     .service(post_comment),
-            )
-            .default_service(web::route().to(router));
+            );
 
         app_instance
     })

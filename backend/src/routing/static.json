@@ -1,8 +1,0 @@
-{
-        "routes": {
-                "/": "static/index.html"
-        },
-        "error_pages": {
-                "404": "static/404.html"
-        }
-}
