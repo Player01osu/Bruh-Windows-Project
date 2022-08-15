@@ -1,2 +1,6 @@
 [[proxy]]
 backend = "http://127.0.0.1:7878/api"
+
+[[hooks]]
+stage = "post_build"
+command = "./post_build.sh"

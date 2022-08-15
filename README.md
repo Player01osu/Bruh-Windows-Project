@@ -15,18 +15,29 @@ Built using actix framework and yew framework
 
 ```sh
 $ cargo build --bin backend
-
-$ ./link.sh
-
-$ cd ./target/debug/
-
-$ ./backend
-
 ```
+
+```sh
+$ ./link.sh
+```
+
+```sh
+$ cd ./target/debug/
+```
+
+```sh
+$ ./backend
+```
+
+```sh
 New shell
+```
+
 ```sh
 $ cd ./frontend
+```
 
+```sh
 $ trunk serve --proxy-backend=http://127.0.0.1:7878/api
 ```
 
