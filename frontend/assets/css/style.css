@@ -495,12 +495,12 @@ body {
   top: 25px;
   left: 0px;
   right: 0px;
+  z-index: 34;
 
   padding-left: 60px;
 
   position: absolute;
   background-color: rgba(103, 40, 107);
-  z-index: 11;
   height: 46px;
 }
 
@@ -512,7 +512,7 @@ body {
   height: 25px;
   right: 0px;
   left: 0px;
-  z-index: 10;
+  z-index: 31;
 }
 
 .sidebar-collapsed {
