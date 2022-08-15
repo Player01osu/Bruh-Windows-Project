@@ -6,6 +6,7 @@ use actix_cors::Cors;
 use actix_web::middleware::{self, Logger};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
+use actix_web_lab::web::spa;
 use api::comment::{post_comment::post_comment, view_comments::view_post_comments};
 use api::post::{
     delete_post::delete_post,
@@ -42,7 +43,9 @@ async fn main() -> std::io::Result<()> {
                     .service(post_image)
                     .service(delete_post)
                     .service(like_post)
-                    .service(unlike_post),
+                    .service(unlike_post)
+                    .service(post_comment)
+                    .service(view_post_comments),
             )
             .service(
                 spa()
