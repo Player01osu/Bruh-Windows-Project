@@ -20,7 +20,6 @@ impl Component for App {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <>
-                <script src="https://unpkg.com/ionicons@5.0.0/dist/ionicons.js"></script>
                 <BrowserRouter>
                     <Container/>
                     <Template>
