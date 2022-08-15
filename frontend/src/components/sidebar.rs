@@ -1,6 +1,6 @@
 use crate::Route;
 use web_sys::{FormData, HtmlFormElement};
-use yew::{html, Callback, Component, Context, Html, TargetCast};
+use yew::{html::Scope, html, Callback, Component, Context, Html, TargetCast};
 use yew_router::prelude::*;
 
 use super::{
@@ -16,7 +16,6 @@ pub struct Sidebar {
 pub enum SidebarMsg {
     Toggle,
     Search(String),
-    None,
 }
 
 pub enum SidebarVisibility {
@@ -52,22 +51,61 @@ impl Sidebar {
 
         html! {
             <>
-                <div class="links">
-                    { Self::generate_link(String::from("HOME"), Route::Home, None) }
-                    { Self::generate_link(String::from("GALLERY"), Route::Gallery, Some(query)) }
-                    { Self::generate_link(String::from("TAGS"), Route::Tags, None) }
-                    { Self::generate_link(String::from("ABOUT"), Route::About, None) }
-                    <div class="indiv">
-                        <div>
-                            <a href="https://github.com/player01osu/yuri-web"
-                                class="link"
-                                style="text-decoration: none;">
-                                    {"GITHUB"}
-                            </a>
+                <center>
+                    <div class="links">
+                        { Self::generate_link(String::from("HOME"), Route::Home, None) }
+                        { Self::generate_link(String::from("GALLERY"), Route::Gallery, Some(query)) }
+                        { Self::generate_link(String::from("TAGS"), Route::Tags, None) }
+                        { Self::generate_link(String::from("ABOUT"), Route::About, None) }
+                        <div class="indiv">
+                            <div>
+                                <a href="https://github.com/player01osu/yuri-web"
+                                    class="link"
+                                    style="text-decoration: none;">
+                                        {"GITHUB"}
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </center>
             </>
+        }
+    }
+
+    fn cookie() -> Html {
+        html! {
+            <div class="nav-img">
+                <div id="nav-wrap">
+                    <img class="imge" src="../assets/img/blah.jpg" alt="nav-img"/>
+                </div>
+            </div>
+        }
+    }
+
+    fn search_bar(link: &Scope<Self>) -> Html {
+        let onsubmit = {
+            link.callback(move |event: web_sys::FocusEvent| {
+                event.prevent_default();
+                let form = event.target_unchecked_into::<HtmlFormElement>();
+                let data = FormData::new_with_form(&form).unwrap();
+
+                let query = data.get("q").as_string().expect("Fucking parse this mf");
+                SidebarMsg::Search(query)
+            })
+        };
+
+        html! {
+            <form
+                action=""
+                class="search-bar"
+                {onsubmit}
+            >
+                <input
+                    type="text"
+                    class="search"
+                    placeholder="search tag or somth"
+                    name="q"/>
+            </form>
         }
     }
 }
@@ -114,22 +152,11 @@ impl Component for Sidebar {
                 history.push_with_query(Route::Gallery, query).unwrap();
                 true
             }
-            SidebarMsg::None => true,
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onclick = ctx.link().callback(|_| SidebarMsg::Toggle);
-        let onsubmit = {
-            ctx.link().callback(move |event: web_sys::FocusEvent| {
-                event.prevent_default();
-                let form = event.target_unchecked_into::<HtmlFormElement>();
-                let data = FormData::new_with_form(&form).unwrap();
-
-                let query = data.get("q").as_string().expect("Fucking parse this mf");
-                SidebarMsg::Search(query)
-            })
-        };
 
         html! {
             <>
@@ -138,25 +165,9 @@ impl Component for Sidebar {
 
                 <div class="navall" style={(&self.style).to_string()}>
                     <div class="nav">
-                            <form
-                                action=""
-                                class="search-bar"
-                                {onsubmit}
-                            >
-                                <input
-                                    type="text"
-                                    class="search"
-                                    placeholder="search tag or somth"
-                                    name="q"/>
-                            </form>
-                            <div class="nav-img">
-                                <div>
-                                    <img class="imge" src="../assets/img/blah.jpg" alt="nav-img"/>
-                                </div>
-                            </div>
-                        <center>
-                            { Self::links() }
-                        </center>
+                        { Self::search_bar(&ctx.link()) }
+                        { Self::cookie() }
+                        { Self::links() }
                     </div>
                 </div>
             </>
