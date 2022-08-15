@@ -55,10 +55,12 @@ pub struct Gallery {
 const LIMIT: i64 = 10i64;
 
 impl Gallery {
+    #[inline]
     pub fn new(amount: u16) -> Gallery {
         Gallery { show: None, amount }
     }
 
+    #[inline]
     pub async fn gen_gallery(
         &mut self,
         database: mongodb::Collection<Document>,
@@ -71,7 +73,7 @@ impl Gallery {
             "views" => String::from("stats.views"),
             _ => String::from("time"),
         };
-        let skip_amount = u32::from(self.amount - 10);
+        let skip_amount = u32::from(self.amount - LIMIT as u16);
 
         let filter = Some(doc! {
             "$or": [
