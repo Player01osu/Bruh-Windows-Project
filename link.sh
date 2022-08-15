@@ -11,13 +11,9 @@ fi
 
 case $1 in
 	"--release")
-		rm -rf ./target/**/static
-		rm -rf ./target/**/static.json
 		rm -rf ./target/**/dist
 		rm -rf ./target/**/assets
 
-		ln -s $(pwd)/backend/src/static ./target/release/static
-		ln -s $(pwd)/backend/static.json ./target/release/
 		ln -s $(pwd)/frontend/assets ./target/release/
 		ln -s $(pwd)/frontend/dist ./backend/
 		;;
