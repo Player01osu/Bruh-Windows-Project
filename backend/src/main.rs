@@ -1,47 +1,32 @@
 mod api;
-mod routing;
+mod database;
 
+use crate::database::mongo::MongodbDatabase;
 use actix_cors::Cors;
 use actix_web::middleware::{self, Logger};
-use actix_web::web::Bytes;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
-use actix_web_lab::web::spa;
-use routing::routes;
-use std::path::PathBuf;
-
-use api::task::{delete_post, like_post, post_image, unlike_post, view_posts};
-
-use api::mongo::MongodbDatabase;
-use routes::*;
-
-fn main() -> anyhow::Result<()> {
-    init()
-}
+use api::comment::{post_comment::post_comment, view_comments::view_post_comments};
+use api::post::{
+    delete_post::delete_post,
+    like_post::{like_post, unlike_post},
+    upload_post::post_image,
+    view_post::view_posts,
+};
 
 #[actix_web::main]
-pub async fn run() -> std::io::Result<()> {
+async fn main() -> std::io::Result<()> {
     // Logging
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    // Insert 404 Page Not Found
-    let not_found_page = StaticFile {
-        bytes: Bytes::from(include_bytes!("./static/404.html").to_vec()),
-        path: PathBuf::from("static/404.html"),
-    };
-    let route_handle = RouteHandle {
-        response: not_found_page,
-    };
-    ROUTEMAP.insert("{{404}}".into(), route_handle);
-
     let database = MongodbDatabase::mongo_connect().await;
-    MongodbDatabase::create_cursor(&database).await;
 
     HttpServer::new(move || {
-        let database_data = Data::new(database.clone());
         let logger = Logger::default();
+        let database = database.clone();
+        let database = Data::new(database);
         let cors = Cors::permissive(); // FIXME: uhhhhhhhh, change this
 
         let app_instance = App::new()
@@ -50,9 +35,7 @@ pub async fn run() -> std::io::Result<()> {
             .wrap(middleware::NormalizePath::new(
                 middleware::TrailingSlash::Trim,
             ))
-            .app_data(database_data)
-            // Load assets
-            .service(actix_files::Files::new("/assets", "static/assets"))
+            .app_data(database)
             .service(
                 web::scope("/api")
                     .service(view_posts)
@@ -67,8 +50,7 @@ pub async fn run() -> std::io::Result<()> {
                 .static_resources_mount("/")
                 .static_resources_location("./dist")
                 .finish()
-            )
-            .default_service(web::route().to(router));
+            );
 
         app_instance
     })

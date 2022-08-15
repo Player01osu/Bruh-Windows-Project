@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use web_sys::{DragEvent, Event, FileList, FormData, HtmlFormElement, HtmlInputElement};
 use yew::{html, Callback, Component, Context, Html, TargetCast};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct UploadFields {
     title: String,
     author: String,
@@ -18,22 +18,6 @@ pub struct UploadFields {
     filename: String,
     width: u32,
     height: u32,
-}
-
-impl Default for UploadFields {
-    fn default() -> Self {
-        Self {
-            title: String::default(),
-            author: String::default(),
-            op: String::default(),
-            material: String::default(),
-            link: String::default(),
-            tags: String::default(),
-            filename: String::default(),
-            width: 0,
-            height: 0,
-        }
-    }
 }
 
 impl UploadFields {
@@ -165,7 +149,7 @@ impl Component for FileUpload {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <div class="upload">
+            <div class="post-upload">
                 <form id="upload_form"
                     onsubmit={ctx.link().callback(move |event: web_sys::FocusEvent| {
                         event.prevent_default();

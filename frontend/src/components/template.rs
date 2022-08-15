@@ -1,4 +1,4 @@
-use super::header::Header;
+use super::{header::Header, sidebar::Sidebar};
 use yew::{html, Callback, Children, Component, Context, ContextProvider, Html, Properties};
 
 pub struct Template {
@@ -37,11 +37,11 @@ impl Component for Template {
             TemplateMsg::ToggleSidebar => {
                 match self.sidebar_toggle {
                     true => {
-                        self.class = "sidebar-collapsed".to_string();
+                        self.class = String::from("sidebar-collapsed");
                         self.sidebar_toggle = false;
                     }
                     false => {
-                        self.class = String::default();
+                        self.class.clear();
                         self.sidebar_toggle = true;
                     }
                 }
@@ -60,12 +60,15 @@ impl Component for Template {
 
         html! {
             <>
-                <body style="background-color: black;" class={body_style}>
-                    <Header/>
+                <div class={body_style}>
+                    <Header is_collapsed={self.class.is_empty()}/>
                     <ContextProvider<Body> context={body}>
-                        { for ctx.props().children.iter() }
+                        <div class="below">
+                            <Sidebar/>
+                            { for ctx.props().children.iter() }
+                        </div>
                     </ContextProvider<Body>>
-                </body>
+                </div>
             </>
         }
     }

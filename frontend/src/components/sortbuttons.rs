@@ -25,10 +25,7 @@ impl SortButtons {
 
         let query = query.query.clone();
 
-        PostQuery {
-            sort,
-            query,
-        }
+        PostQuery { sort, query }
     }
 
     fn generate_sort_buttons(query: PostQuery) -> Html {
@@ -64,7 +61,7 @@ impl SortButtons {
     }
 }
 
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, PartialEq, Eq, Clone)]
 pub struct SortButtonsProps {
     pub query: PostQuery,
 }
