@@ -255,26 +255,17 @@ impl Component for Posts {
 
             PostsMsg::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
-                let image_oid = image.oid.clone();
 
                 let request_uri = match image.toggle_like() {
-                    true => String::from("/api/like-post"),
-                    false => String::from("/api/unlike-post"),
+                    true => format!("/api/like-post/{}", &image.oid),
+                    false => format!("/api/unlike-post/{}", &image.oid),
                 };
 
                 ctx.link().send_future(async move {
                     Request::put(&request_uri)
-                        .header("Content-Type", "application/json")
-                        .body(&format!(
-                            r#"
-                            {{
-                                "oid": "{}"
-                            }}"#,
-                            image_oid
-                        ))
                         .send()
                         .await
-                        .expect("Failed to send put request (/api/like-post/)");
+                        .expect("Failed to send put request (/api/(un)like-post/)");
                     PostsMsg::None
                 });
 
