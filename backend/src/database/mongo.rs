@@ -10,6 +10,7 @@ pub struct MongodbDatabase {
 pub enum CollectionList {
     Posts,
     Comments,
+    Users,
 }
 
 /// Abstracted database with fixed collections
@@ -34,6 +35,7 @@ impl MongodbDatabase {
         match collection {
             CollectionList::Posts => self.database.collection::<T>("yuriPosts"),
             CollectionList::Comments => self.database.collection::<T>("yuriComments"),
+            CollectionList::Users => self.database.collection::<T>("yuriUsers"),
         }
     }
 }

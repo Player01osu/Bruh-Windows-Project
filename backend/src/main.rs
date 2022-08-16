@@ -7,13 +7,12 @@ use actix_web::middleware::{self, Logger};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use actix_web_lab::web::spa;
-use api::comment::{post_comment::post_comment, view_comments::view_post_comments};
-use api::post::{
+use api::{comment::{post_comment::post_comment, view_comments::view_post_comments}, post::{
     delete_post::delete_post,
     like_post::{like_post, unlike_post},
     upload_post::post_image,
     view_post::view_posts,
-};
+}, user::{get_user::get_user, generate_user::generate_user}};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -45,7 +44,12 @@ async fn main() -> std::io::Result<()> {
                     .service(like_post)
                     .service(unlike_post)
                     .service(post_comment)
-                    .service(view_post_comments),
+                    .service(view_post_comments)
+                    .service(
+                        web::scope("/user")
+                            .service(get_user)
+                            .service(generate_user)
+                        ),
             )
             .service(
                 spa()

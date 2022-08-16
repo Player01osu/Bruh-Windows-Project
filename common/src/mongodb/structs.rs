@@ -40,6 +40,21 @@ pub struct CommentSection {
     pub comments: Option<Vec<Comment>>,
 }
 
+#[derive(Serialize, Deserialize, Default)]
+pub struct Users {
+    #[serde(rename = "_id")]
+    pub oid: ObjectId,
+}
+
+impl Users {
+    pub fn new(oid: ObjectId) -> Self {
+        Self {
+            oid
+        }
+    }
+}
+
+
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Comment {
