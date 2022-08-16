@@ -12,7 +12,7 @@ use yew_router::{BrowserRouter, Switch};
 
 pub struct App;
 
-pub struct AppMsg(String);
+pub struct AppMsg(Session);
 
 impl Component for App {
     type Message = AppMsg;
@@ -24,12 +24,19 @@ impl Component for App {
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        window()
+        let local_storage = window()
             .local_storage()
             .unwrap()
-            .expect("Failed to get local storage")
-            .set_item("user_id", &msg.0)
-            .expect("Failed to set user_id");
+            .expect("Failed to get local storage");
+
+        local_storage
+            .set_item("public", &msg.0.user_pub)
+            .expect("Failed to set private id");
+        if !msg.0.user_priv.is_empty() {
+            local_storage
+                .set_item("private", &msg.0.user_priv.to_string())
+                .expect("Failed to set public id");
+        }
         true
     }
 

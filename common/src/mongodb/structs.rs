@@ -1,5 +1,7 @@
+use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher, rc::Rc, borrow::Borrow, ops::Deref, marker::PhantomData};
+
 use bson::oid::ObjectId;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, __private::de::Borrowed};
 use uuid::Uuid;
 // FIXME: Not all of these have to be pub (I think).
 // Find all unnecessary uses of pub
@@ -39,21 +41,6 @@ pub struct CommentSection {
     pub post_oid: ObjectId,
     pub comments: Option<Vec<Comment>>,
 }
-
-#[derive(Serialize, Deserialize, Default)]
-pub struct Users {
-    #[serde(rename = "_id")]
-    pub oid: ObjectId,
-}
-
-impl Users {
-    pub fn new(oid: ObjectId) -> Self {
-        Self {
-            oid
-        }
-    }
-}
-
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
