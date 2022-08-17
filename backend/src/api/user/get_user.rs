@@ -2,9 +2,8 @@ use actix_web::{
     get,
     web::Data,
     web::{Json, Path},
-    ResponseError,
 };
-use bson::{doc, oid::ObjectId};
+use bson::doc;
 
 use crate::{
     api::user::{Users, UsersDb},

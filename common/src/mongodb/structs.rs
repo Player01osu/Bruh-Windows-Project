@@ -1,7 +1,5 @@
-use std::{hash::{Hash, Hasher}, collections::hash_map::DefaultHasher, rc::Rc, borrow::Borrow, ops::Deref, marker::PhantomData};
-
 use bson::oid::ObjectId;
-use serde::{Deserialize, Serialize, __private::de::Borrowed};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 // FIXME: Not all of these have to be pub (I think).
 // Find all unnecessary uses of pub
@@ -48,6 +46,37 @@ pub struct Comment {
     #[serde(default = "default_user_id")]
     pub commenter: String,
     pub body: String,
+}
+
+use strum_macros::EnumString;
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Default, Serialize, EnumString)]
+pub enum ImageLiked {
+    Liked,
+    #[default]
+    Unliked,
+}
+
+#[derive(Deserialize, Default, Clone, PartialEq, Debug, Serialize)]
+pub struct ImageStates {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    #[serde(default)]
+    pub uploader: bool,
+    #[serde(default)]
+    pub like_state: ImageLiked,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+pub struct UsersDb {
+    public: String,
+    image_states: Vec<ImageStates>,
+}
+
+impl UsersDb {
+    pub fn new(public: String) -> Self {
+        Self { public, ..Default::default() }
+    }
 }
 
 fn default_user_id() -> String {

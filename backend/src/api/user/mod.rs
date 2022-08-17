@@ -2,14 +2,14 @@ pub mod generate_user;
 pub mod get_user;
 
 use std::{
-    borrow::Borrow,
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
-    rc::Rc,
 };
 
+use common::mongodb::structs::UsersDb;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
 #[derive(Serialize)]
 struct UserId {
     user_pub: String,
@@ -34,16 +34,5 @@ impl Users {
         public.write(private.as_bytes());
         private.to_string().hash(&mut public);
         public.finish().to_string()
-    }
-}
-
-#[derive(Serialize, Deserialize, Default)]
-pub struct UsersDb {
-    public: String,
-}
-
-impl UsersDb {
-    pub fn new(public: String) -> Self {
-        Self { public }
     }
 }
