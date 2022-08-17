@@ -24,7 +24,7 @@ pub async fn like_post(
     HttpResponse::Ok().body("HTTP/1.1 201 Updated")
 }
 
-#[put("/unlike-post")]
+#[put("/unlike-post/{oid}")]
 pub async fn unlike_post(
     path: Path<String>,
     database: Data<MongodbDatabase>,
