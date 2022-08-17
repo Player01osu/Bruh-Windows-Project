@@ -1,12 +1,15 @@
-use crate::components::{
-    fileupload::FileUpload,
-    posts::{PostQuery, Posts},
-    sortbuttons::SortButtons,
+use crate::{
+    components::{
+        fileupload::FileUpload,
+        posts::{PostQuery, Posts},
+        sortbuttons::SortButtons,
+    },
+    session::Session,
 };
 
 use gloo_utils::document;
 use web_sys::WheelEvent;
-use yew::{html, Component, Context, Html, NodeRef};
+use yew::{html, Callback, Component, Context, Html, NodeRef};
 use yew_router::{
     prelude::Location,
     scope_ext::{HistoryHandle, RouterScopeExt},
@@ -54,6 +57,13 @@ impl Component for Gallery {
             .link()
             .add_history_listener(ctx.link().callback(move |_| GalleryMsg::Reload))
             .unwrap();
+
+        let reload_gallery = Some(ctx.link().callback(|_| GalleryMsg::Reload));
+        ctx.link()
+            .context::<Session>(Callback::noop())
+            .unwrap()
+            .0
+            .gallery_callback = reload_gallery;
 
         let gallery = Self {
             _history_handle: history_listener,

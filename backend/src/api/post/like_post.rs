@@ -2,7 +2,7 @@ use crate::{
     api::user::Users,
     database::mongo::{CollectionList, MongodbDatabase},
 };
-use common::mongodb::structs::{ImageLiked, UsersDb, YuriPosts};
+use common::mongodb::structs::{UsersDb, YuriPosts};
 use serde::Deserialize;
 
 use actix_web::{
@@ -11,10 +11,7 @@ use actix_web::{
     HttpResponse,
 };
 use bson::oid::ObjectId;
-use mongodb::{
-    bson::doc,
-    options::{FindOptions, UpdateOptions},
-};
+use mongodb::bson::doc;
 
 #[derive(Deserialize)]
 pub struct PathInfo {

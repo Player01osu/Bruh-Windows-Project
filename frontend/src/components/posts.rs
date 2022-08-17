@@ -3,13 +3,16 @@ use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use web_sys::Element;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html, NodeRef, Properties};
+use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
 
-use common::mongodb::structs::{ImageExpandState, ImageRequest, PostStats, Resolution, Source};
+use common::mongodb::structs::{
+    ImageExpandState, ImageLiked, ImageRequest, PostStats, Resolution, Source,
+};
 use yew_router::prelude::History;
 use yew_router::scope_ext::RouterScopeExt;
 
 use crate::routes::Route;
+use crate::session::Session;
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 pub struct PostQuery {
@@ -32,34 +35,28 @@ pub struct PostsProps {
 
 #[derive(Clone, PartialEq, Eq, Deserialize, Debug)]
 pub struct Image {
-    pub oid: String,
-    pub state: ImageExpandState,
-    pub title: String,
     pub author: String,
+    pub class: String,
+    pub comments: Option<ObjectId>,
+    pub heart_class: String,
+    pub heart_state: ImageLiked,
+    pub oid: String,
     pub op: String,
     pub path: String,
-    pub stats: PostStats,
-    pub comments: Option<ObjectId>,
-    pub source: Source,
     pub resolution: Resolution,
-    pub time: usize,
-    pub tags: Option<Vec<String>>,
+    pub source: Source,
+    pub state: ImageExpandState,
+    pub stats: PostStats,
     pub style: String,
-    pub class: String,
-    pub heart_state: ImageLiked,
-    pub heart_class: String,
+    pub tags: Option<Vec<String>>,
+    pub time: usize,
+    pub title: String,
 }
 
 pub struct Posts {
     images: Vec<Image>,
     page: u16,
     prev_succeed: bool,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
-pub enum ImageLiked {
-    Liked,
-    Unliked,
 }
 
 pub enum PostsMsg {
@@ -151,7 +148,7 @@ impl Posts {
                     class={format!("{}", image.class)}
                     loading="lazy"
                     onclick={link.callback(move |_| PostsMsg::ToggleExpando(image_id))}
-                    />
+                />
                 { tags }
             </div>
         }
@@ -225,8 +222,22 @@ impl Component for Posts {
             }
 
             PostsMsg::QueryImages(fetched_images) => {
+                let (session, _) = ctx.link().context::<Session>(Callback::noop()).unwrap();
                 if !fetched_images.is_empty() {
                     for image in fetched_images {
+                        let image_states = session.image_states_map.get(&image._id.oid);
+                        let (heart_state, heart_class) = match image_states {
+                            Some(v) => {
+                                (&v.like_state, match &v.like_state {
+                                    ImageLiked::Unliked => "heart".to_string(),
+                                    ImageLiked::Liked => "heart-liked".to_string(),
+                                })
+                            },
+                            None => {
+                                (&ImageLiked::Unliked, "heart".to_string())
+                            },
+                        };
+
                         self.images.push(Image {
                             oid: image._id.oid,
                             state: ImageExpandState::Unfocus,
@@ -242,8 +253,8 @@ impl Component for Posts {
                             comments: image.comments,
                             style: "yuri-img".to_string(),
                             class: "yuri-img".to_string(),
-                            heart_state: ImageLiked::Unliked,
-                            heart_class: "heart".to_string(),
+                            heart_state: heart_state.clone(),
+                            heart_class,
                         })
                     }
                     self.prev_succeed = true;
@@ -255,10 +266,18 @@ impl Component for Posts {
 
             PostsMsg::Like(image_id) => {
                 let image = self.images.get_mut(image_id).unwrap();
+                let (session, _) = ctx.link().context::<Session>(Callback::noop()).unwrap();
 
                 let request_uri = match image.toggle_like() {
-                    true => format!("/api/like-post/{}", &image.oid),
-                    false => format!("/api/unlike-post/{}", &image.oid),
+                    true => format!(
+                        "/api/like-post/{}/{}",
+                        &image.oid,
+                        session.user_priv.unwrap()
+                    ),
+                    false => format!("/api/unlike-post/{}/{}",
+                        &image.oid,
+                        session.user_priv.unwrap()
+                    ),
                 };
 
                 ctx.link().send_future(async move {
