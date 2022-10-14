@@ -47,6 +47,17 @@ impl Gallery {
         };
     }
 }
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 impl Component for Gallery {
     type Properties = ();
@@ -57,6 +68,7 @@ impl Component for Gallery {
             .link()
             .add_history_listener(ctx.link().callback(move |_| GalleryMsg::Reload))
             .unwrap();
+        let (_, session_handle) = ctx.link().context::<Session>(Callback::noop()).unwrap();
 
         let reload_gallery = Some(ctx.link().callback(|_| GalleryMsg::Reload));
         ctx.link()
@@ -96,6 +108,7 @@ impl Component for Gallery {
             }
 
             GalleryMsg::Reload => {
+                console_log!("RELOAD");
                 self.query = ctx.link().location().unwrap().query::<PostQuery>().unwrap();
                 self.page_number = 1;
                 self.show_posts();

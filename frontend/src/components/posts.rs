@@ -12,7 +12,7 @@ use yew_router::prelude::History;
 use yew_router::scope_ext::RouterScopeExt;
 
 use crate::routes::Route;
-use crate::session::Session;
+use crate::session::{Session, ChangeState, State};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 pub struct PostQuery {
@@ -172,6 +172,17 @@ impl Posts {
         });
     }
 }
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(a: &str);
+}
+
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 impl Component for Posts {
     type Message = PostsMsg;
@@ -227,16 +238,16 @@ impl Component for Posts {
                     for image in fetched_images {
                         let image_states = session.image_states_map.get(&image._id.oid);
                         let (heart_state, heart_class) = match image_states {
-                            Some(v) => {
-                                (&v.like_state, match &v.like_state {
+                            Some(v) => (
+                                &v.like_state,
+                                match &v.like_state {
                                     ImageLiked::Unliked => "heart".to_string(),
                                     ImageLiked::Liked => "heart-liked".to_string(),
-                                })
-                            },
-                            None => {
-                                (&ImageLiked::Unliked, "heart".to_string())
-                            },
+                                },
+                            ),
+                            None => (&ImageLiked::Unliked, "heart".to_string()),
                         };
+                        console_log!("{:#?}", &image_states);
 
                         self.images.push(Image {
                             oid: image._id.oid,
@@ -268,17 +279,33 @@ impl Component for Posts {
                 let image = self.images.get_mut(image_id).unwrap();
                 let (session, _) = ctx.link().context::<Session>(Callback::noop()).unwrap();
 
+                let change_like_state: ImageLiked;
                 let request_uri = match image.toggle_like() {
-                    true => format!(
-                        "/api/like-post/{}/{}",
-                        &image.oid,
-                        session.user_priv.unwrap()
-                    ),
-                    false => format!("/api/unlike-post/{}/{}",
-                        &image.oid,
-                        session.user_priv.unwrap()
-                    ),
+                    true => {
+                        change_like_state = ImageLiked::Liked;
+                        format!(
+                            "/api/like-post/{}/{}",
+                            &image.oid,
+                            session.user_priv.as_ref().unwrap()
+                        )
+                    }
+                    false => {
+                        change_like_state = ImageLiked::Unliked;
+                        format!(
+                            "/api/unlike-post/{}/{}",
+                            &image.oid,
+                            session.user_priv.as_ref().unwrap()
+                        )
+                    }
                 };
+
+                let post_id = image.oid.clone();
+                let state_change = ChangeState {
+                    post_id,
+                    state: State::Like(change_like_state)
+                };
+
+                session.app_message.emit(crate::AppMsg::UpdateSession(state_change));
 
                 ctx.link().send_future(async move {
                     Request::put(&request_uri)

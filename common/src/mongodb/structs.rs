@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -67,10 +69,32 @@ pub struct ImageStates {
     pub like_state: ImageLiked,
 }
 
+impl ImageStates {
+    fn oid_to_string(&mut self) {
+        self.id.to_string();
+    }
+}
+
+#[derive(Deserialize, Default, Clone, PartialEq, Debug, Serialize)]
+pub struct ImageStatesDeserialize {
+    #[serde(rename = "_id")]
+    pub id: String,
+    #[serde(default)]
+    pub uploader: bool,
+    #[serde(default)]
+    pub like_state: ImageLiked,
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct UsersDb {
-    public: String,
-    image_states: Vec<ImageStates>,
+    pub public: String,
+    pub image_states: Vec<ImageStates>,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+pub struct UsersSerialize {
+    pub public: String,
+    pub image_states: Vec<ImageStatesDeserialize>,
 }
 
 impl UsersDb {

@@ -8,14 +8,19 @@ use components::{container::Container, template::Template};
 use gloo_utils::window;
 use pages::gallery::GalleryMsg;
 use routes::{switch, Route};
-use yew::{html, Component, Context, Html, ContextProvider};
+use session::ChangeState;
+use yew::{html, Component, Context, ContextProvider, Html};
 use yew_router::{BrowserRouter, Switch};
 
 pub struct App {
     session: Session,
 }
 
-pub struct AppMsg(Session);
+pub enum AppMsg {
+    LoadUser(Session),
+    UpdateSession(ChangeState),
+    None,
+}
 
 impl Component for App {
     type Message = AppMsg;
@@ -24,30 +29,42 @@ impl Component for App {
     fn create(ctx: &Context<Self>) -> Self {
         Session::init(&ctx.link());
         Self {
-            session: Default::default()
+            session: Session {
+                app_message: ctx.link().callback(|m| m),
+                ..Default::default()
+            },
         }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let local_storage = window()
-            .local_storage()
-            .unwrap()
-            .expect("Failed to get local storage");
+        match msg {
+            AppMsg::LoadUser(user) => {
+                let local_storage = window()
+                    .local_storage()
+                    .unwrap()
+                    .expect("Failed to get local storage");
 
-        local_storage
-            .set_item("public", &msg.0.user_pub)
-            .expect("Failed to set public id");
-        if let Some(private) = &msg.0.user_priv {
-            local_storage
-                .set_item("private", private)
-                .expect("Failed to set private id")
-        };
+                local_storage
+                    .set_item("public", &user.user_pub)
+                    .expect("Failed to set public id");
+                if let Some(private) = &user.user_priv {
+                    local_storage
+                        .set_item("private", private)
+                        .expect("Failed to set private id")
+                };
 
-        self.session.update_state(msg.0);
-        if let Some(callback) = &self.session.gallery_callback {
-            callback.emit(GalleryMsg::Reload);
+                self.session.update_state(user);
+                if let Some(callback) = &self.session.gallery_callback {
+                    callback.emit(GalleryMsg::Reload);
+                }
+                true
+            },
+            AppMsg::UpdateSession(state_change) => {
+                self.session.change_state(state_change);
+                true
+            },
+            AppMsg::None => false,
         }
-        true
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
