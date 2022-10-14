@@ -61,7 +61,7 @@ async fn main() -> std::io::Result<()> {
 
         app_instance
     })
-    .bind(("127.0.0.1", 7878))?
+    .bind(("0.0.0.0", 80))?
     .run()
     .await
 }
